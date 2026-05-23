@@ -209,12 +209,13 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
 <header>
   <div class="wrap">
     <h1>臨床検査部門システム（LIS）クラウド化<br>法規制対応と技術要件ガイド</h1>
-    <p class="sub">検査・細菌・病理の臨床検査部門システムをクラウドで実現するにあたり、満たさなければいけない法規制と推奨する対応を、根拠条項・要件・技術スタック・残リスクまで分解して整理する。あわせて「これで網羅できているか」を導出フレームワークで示し、追加質問に答えられる構造にする。</p>
+    <p class="sub">検査・細菌・病理の臨床検査部門システムをクラウドで実現するにあたり、満たすべき法規制と推奨対応を、根拠条項・要件・技術スタック・残リスクまで分解する。網羅性は導出フレームワークで示し、追加質問にも構造で答えられるようにした。</p>
     <div class="scope">
       <span>臨床検査（生化学・血液等）</span>
       <span>細菌・微生物検査</span>
       <span>病理・細胞診</span>
     </div>
+    <div style="margin-top:14px;font-size:13px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 14px;display:inline-block">関連：案件受注のための資格要件 → <a href="https://kioh-daiv.github.io/lis-procurement-qualifications/" style="color:#fff;text-decoration:underline">lis-procurement-qualifications</a></div>
     <div class="meta">最終更新：2026年5月 ／ 技術スタックは AWS 主軸＋クラウド非依存の原則で記述</div>
   </div>
 </header>
@@ -223,7 +224,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
 
   <div class="intro">
     <h2>このガイドの構造</h2>
-    <p>部門システムをクラウドへ移すと、医療情報（要配慮個人情報）の取得・保存・利用・提供・廃棄のすべてが、法規制とガイドラインの直接対象になる。本ガイドは各規制を次の 5 段で分解する。</p>
+    <p>部門システムをクラウドへ移すと、医療情報（要配慮個人情報）の取得・保存・利用・提供・廃棄の全段階が法規制とガイドラインの直接対象になる。本ガイドは各規制を次の 5 段で分解する。</p>
     <p style="font-size:13.5px;color:var(--text)"><strong>該当条項 → 満たすべき要件 → 技術スタック（原則＋AWS 実現例）→ なぜ担保できるか → 残リスク（引き取り先を 4 分類で明示）</strong></p>
     <p style="margin-top:10px"><span class="badge must">必須</span> 法令・省令で課される、または医療機関が委託先を選定する前提条件。 <span class="badge defacto">実質必須</span> 法的には推奨だが選定で事実上の前提。 <span class="badge rec">推奨</span> 信頼性・相互運用性・調達競争力を左右する。</p>
     <p class="note">本資料は 2026 年 5 月時点の一般整理であり、特定組織の対応を保証しない。法規制・ガイドラインは改定される。実際の適用は最新の原典・所管官庁・専門家の確認を前提とする。</p>
@@ -232,7 +233,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
   <!-- ===== 網羅性の根拠 ===== -->
   <div class="coverage">
     <h2>網羅性の根拠 — なぜ「これで足りる」と言えるか</h2>
-    <p class="lead">法規制を個別に列挙しても「他は？」には終わりがない（不存在の証明はできない）。本ガイドは規制を恣意的に選んでいない。<strong>① 医療情報のデータライフサイクル全段階</strong> × <strong>② 3省2ガイドラインを傘とする法体系</strong> の 2 軸で機械的に洗い出した結果を載せる。漏れを問うなら、この 2 軸のどこに位置づくかを特定すればよい。</p>
+    <p class="lead">法規制を個別列挙するだけでは「他は？」に答えきれない（不存在の証明は不可能）。本ガイドは規制を恣意的に選んでいない。<strong>① 医療情報のデータライフサイクル全段階</strong> × <strong>② 3省2ガイドラインを傘とする法体系</strong> の 2 軸で機械的に洗い出した結果を載せる。漏れを問うなら、この 2 軸のどこに位置づくかを特定すればよい。</p>
 
     <h3>軸1：データライフサイクル × 関係法規制（段階の網羅）</h3>
     <div class="lifecycle">
@@ -258,7 +259,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
     <div class="hierarchy">
       <div class="lvl"><span class="tag">法律</span><span>医療法／個人情報保護法／感染症法／臨床検査技師法／薬機法／次世代医療基盤法／e-文書法</span></div>
       <div class="lvl"><span class="tag">政省令</span><span>各施行規則／平成30年厚労省令第93号／個情法施行規則</span></div>
-      <div class="lvl"><span class="tag">告示・通知</span><span>医政発0310第2号／医政発0329003号／薬生機審発0331第1号</span></div>
+      <div class="lvl"><span class="tag">告示・通知</span><span>産情発0310第2号／医政発0329003号／薬生機審発0331第1号</span></div>
       <div class="lvl"><span class="tag">ガイドライン</span><span>3省2GL（厚労省第6.0版／事業者向け第2.0版）／SaMD該当性ガイドライン</span></div>
       <div class="lvl"><span class="tag">認証・業界基準</span><span>ISMS・Pマーク・ISMAP／JAHIS MDS/SDS／学会の標本保存基準</span></div>
     </div>
@@ -279,7 +280,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
     </div>
 
     <div class="rebuttal">
-      <strong>「じゃ他は大丈夫？」への返し方：</strong> 「ライフサイクルのどの段階か、3省2GL にない新規法令か」を特定してください。本ガイドは各項目を残リスクまで開示しており、隠れた前提はありません。対象外は上記で明示しています（漏れではなく設計判断です）。
+      <strong>「他は大丈夫か」への回答：</strong> 「ライフサイクルのどの段階か、3省2GL にない新規法令か」を特定すればよい。各項目は残リスクまで開示済みで、隠れた前提はない。対象外は上記で明示した（漏れではなく設計判断）。
     </div>
   </div>
 
@@ -314,7 +315,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
           <code>法17条（利用目的の特定）</code><code>法21条（取得時の通知公表）</code><code>法2条3項（要配慮の定義）</code><code>法20条2項（要配慮は原則本人同意）</code><code>法23条（安全管理措置）</code><code>法25条（委託先監督）</code><code>法26条（漏えい等報告・本人通知）</code><code>規則7条（報告対象4類型）</code><code>規則8条（速報・確報の期限）</code><code>法27条（第三者提供）</code><code>法28条（越境移転）</code><code>法33〜35条（開示等請求）</code>
         </div>
         <div class="block"><div class="h">なぜ必須か</div>
-          <p style="font-size:14px">検査結果・病理診断・細菌/感染症の情報はすべて「要配慮個人情報」に該当し、取得・保管・通信・提供のすべてに重い取扱いが課される。</p></div>
+          <p style="font-size:14px">検査結果・病理診断・細菌/感染症の情報はいずれも「要配慮個人情報」に該当し、取得・保管・通信・提供の全段階で厳格な取扱いが求められる。</p></div>
         <div class="block"><div class="h">満たすべき要件</div><ul>
           <li>利用目的の特定・通知/公表（法17・21条）。要配慮の取得は原則本人同意（法20条2項）。後の研究等への転用は利用目的の変更手続が必要（法17条2項）</li>
           <li>安全管理措置（組織的・人的・物理的・技術的）＋「外的環境の把握」（海外保守委託先等の把握、法23条）</li>
@@ -351,7 +352,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
       <div class="body">
         <div class="clause"><div class="h">該当根拠</div><code>個情委 FAQ（クラウド例外）</code><code>法27条（第三者提供）</code><code>法25条（委託先監督）との適用関係</code></div>
         <div class="block"><div class="h">論点（LIS クラウド化で最重要級）</div>
-          <p style="font-size:14px">クラウド事業者が <strong>(1) 契約上 個人データを取り扱わない旨を定め、(2) 適切なアクセス制御を行っている</strong> 場合、当該クラウド利用は法27条の「第三者提供」にも法25条の「委託」にも該当しない、という個情委の整理（クラウド例外）がある。この成否で<strong>法的責任構造が根本から変わる</strong>。</p></div>
+          <p style="font-size:14px">クラウド事業者が <strong>(1) 契約上 個人データを取り扱わない旨を定め、(2) 適切なアクセス制御を行っている</strong> 場合、当該クラウド利用は法27条の「第三者提供」にも法25条の「委託」にも該当しない、とする個情委の整理（クラウド例外）がある。この成否で<strong>法的責任構造が変わる</strong>。</p></div>
         <div class="block"><div class="h">満たすべき要件</div><ul>
           <li>クラウド事業者が保存データの内容に関与しない設計（暗号化・鍵の自社管理）</li>
           <li>「個人データを取り扱わない」旨の契約条項</li>
@@ -386,7 +387,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
           <li>CIA（機密性・完全性・可用性）のバランスと ISMS の構築・運用</li>
           <li>電磁的記録の三原則（真正性・見読性・保存性、企画管理編1.1.2）</li>
           <li>責任分界を契約・SLA で明文化。複数機能を束ねる「取りまとめ事業者」型がGL推奨。SaaS/PaaS/IaaS 類型別の責任分界</li>
-          <li>利用者認証。パスワード利用時は2027年4月（令和9年度）以降稼働の新規・更新システムで二要素認証（運用編14章⑤）。放射線管理区域・調剤室等の物理区画認証は「二要素相当」の例外あり</li>
+          <li>利用者認証。パスワードを用いる場合、令和9年度（2027年4月〜2028年3月）に稼働が想定される新規導入・更新システムは、原則として二要素認証の採用が望ましい（運用編14章⑤、努力規定）。放射線管理区域・調剤室等の物理区画認証は「二要素相当」の例外あり</li>
           <li>監査ログ・保守作業ログ（アクセス記録の識別情報を時系列表示、保守は医療機関立会い、運用編10章）</li>
           <li>不正通信の検知・遮断（IDS/IPS）、意図せぬ設定変更の自動検知、ゼロトラスト</li>
           <li>BCP の整備・訓練、CSIRT、非常時の説明責任・善後策責任（経営管理編 表1-1）</li>
@@ -508,7 +509,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
           <li>連携経路：<code>API Gateway</code>＋TLS、必要に応じ <code>PrivateLink</code>/<code>VPN</code></li>
           <li>証跡：<code>CloudTrail</code>・<code>CloudWatch Logs</code></li>
         </ul></div>
-        <div class="why"><div class="h">なぜ担保できるか</div>限定経路＋証跡で連携データの機密性・完全性と「いつ連携したか」を残せる。ただし届出の最終責任は医師にあり、システムはアラート・データ生成支援に留めるべき。</div>
+        <div class="why"><div class="h">なぜ担保できるか</div>限定経路＋証跡で連携データの機密性・完全性と「いつ連携したか」を残せる。届出の最終責任は医師にあり、システムはアラート・データ生成支援に留める。</div>
         <div class="resid"><div class="h">残リスクと引き取り先</div>
           <div class="row"><span class="rr ops">運用</span><div>届出判定の最終責任は医師。システムが自動届出を「診断」化すると SaMD 該当の縁に近づく</div></div>
         </div>
@@ -628,7 +629,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
       <summary><div class="title-wrap"><div class="title-row"><span class="badge defacto">実質必須</span><h3>プライバシーマーク（JIS Q 15001）</h3></div>
         <div class="basis">個人情報保護マネジメントシステム</div></div><span class="chev">▼</span></summary>
       <div class="body">
-        <div class="clause"><div class="h">該当基準</div><code>JIS Q 15001</code><code>事業者向けGLの選定前提</code></div>
+        <div class="clause"><div class="h">該当基準</div><code>JIS Q 15001:2023</code><code>事業者向けGLの選定前提</code></div>
         <div class="block"><div class="h">なぜ実質必須か</div><p style="font-size:14px">ISMS と並ぶ選定前提。要配慮個人情報を扱う事業者として、個人情報保護マネジメントの第三者認証が信頼の土台になる。取得・利用・保管・廃棄の各段階管理を含む。</p></div>
         <div class="resid"><div class="h">残リスクと引き取り先</div>
           <div class="row"><span class="rr ops">運用</span><div>PMS の構築・運用・認証維持は組織運用</div></div>
@@ -641,7 +642,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
         <div class="basis">政府情報システムのためのセキュリティ評価制度（2020年6月運用開始）／ ISMAP-LIU は2022年11月開始 ／ 所管：デジタル庁ほか</div></div><span class="chev">▼</span></summary>
       <div class="body">
         <div class="clause"><div class="h">該当制度</div><code>ISMAP（2020年6月〜）</code><code>ISMAP-LIU（2022年11月〜、低リスクSaaS向け）</code><code>所管：国家サイバー統括室・デジタル庁・総務省・経産省</code></div>
-        <div class="block"><div class="h">なぜ推奨か</div><p style="font-size:14px">政府機関は原則 ISMAP リストから調達する。公的医療機関・政府系調達では前提になる場面がある。民間病院では必須要件ではないため「推奨」。自社 SaaS を登録すれば公的調達に乗りやすい。</p></div>
+        <div class="block"><div class="h">なぜ推奨か（公的調達では実質必須）</div><p style="font-size:14px">政府機関・独法は原則 ISMAP 登録サービスから調達する。国立病院機構・大学病院等の公的調達ではクラウドの参加前提となり、実質的な必須ゲートになる（規制遵守の観点では「推奨」だが、公的調達では必須）。民間病院では必須要件ではない。<strong>なお LIS は要配慮個人情報を扱うため、低リスク用途向けの ISMAP-LIU には該当しにくく、ISMAP 本体側が筋。</strong></p></div>
         <div class="tech"><div class="h">技術スタックで満たす</div><ul>
           <li>多くの AWS サービスが ISMAP 登録済み。これを基盤に自社 SaaS の管理策を整備・登録</li>
         </ul></div>
@@ -677,7 +678,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
         <div class="basis">3省2GL システム運用編で標準形式入出力を要求 ／ 電子カルテ情報共有サービス対応の前提</div></div><span class="chev">▼</span></summary>
       <div class="body">
         <div class="clause"><div class="h">該当根拠</div><code>GLシステム運用編（標準形式入出力）</code><code>HL7 FHIR JP Core</code><code>JLAC11（検査値標準コード）</code></div>
-        <div class="block"><div class="h">なぜ推奨（実態は要件化が進行）か</div><p style="font-size:14px">ガイドラインは標準形式での入出力機能を求める。JLAC11 と FHIR JP Core 対応は電子カルテ情報共有サービス接続の前提。相互運用性を欠くと「土管化」しデータ連携の主導権を失う。</p></div>
+        <div class="block"><div class="h">なぜ推奨（実態は要件化が進行）か</div><p style="font-size:14px">ガイドラインは標準形式での入出力機能を求める。JLAC11 と FHIR JP Core 対応は電子カルテ情報共有サービス接続の前提。相互運用性を欠くとデータ連携の主導権を失う。</p></div>
         <div class="block"><div class="h">満たすべき要件</div><ul>
           <li>検査項目コードの JLAC11 対応、標準コードセットの実装</li>
           <li>HL7 FHIR（JP Core）での入出力 API、変換容易なデータ形式での保持</li>
@@ -750,7 +751,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
       </tbody>
     </table>
     </div>
-    <div class="callout" style="margin-top:18px"><strong>責任共有モデルで「利用者が担う範囲」：</strong> クラウド事業者は物理・ハイパーバイザ・基盤サービスの安全管理を担う。<strong>利用者（システム事業者）は、OS・ミドルのパッチ、暗号鍵の運用、IAM 設計、ログ監視、構成管理、テナント分離、データの分類・廃棄を担う。</strong> 3省2ガイドラインの責任分界は、この境界を契約・SLA に落とし込み、SaaS/PaaS/IaaS の類型ごとに利用者範囲を確定することで成立する。</div>
+    <div class="callout" style="margin-top:18px"><strong>責任共有モデルで「利用者が担う範囲」：</strong> クラウド事業者は物理・ハイパーバイザ・基盤サービスの安全管理を担う。<strong>利用者（システム事業者）は、OS・ミドルのパッチ、暗号鍵の運用、IAM 設計、ログ監視、構成管理、テナント分離、データの分類・廃棄を担う。</strong> 3省2ガイドラインの責任分界は、この境界を契約・SLA に落とし込み、SaaS/PaaS/IaaS 類型ごとに利用者範囲を確定して成立する。</div>
   </section>
 
   <!-- ===================== トレーサビリティ表 ===================== -->
@@ -783,7 +784,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
 
   <!-- ===================== AWS構成図 ===================== -->
   <section class="panel" id="aws">
-    <p class="aws-note">法規制要件を満たす AWS リファレンス構成。医療データは閉域接続で国内リージョン（東京/大阪）に閉じ、暗号化・認証・監査・不変バックアップを多層で配置する。各ノードに主たる対応要件を併記。</p>
+    <p class="aws-note">法規制要件を満たす AWS リファレンス構成。医療データを閉域接続で国内リージョン（東京/大阪）に閉じ、暗号化・認証・監査・不変バックアップを多層配置する。各ノードに主たる対応要件を併記した。</p>
     <div class="aws-diagram">
       <div class="aws-onprem">
         <div class="ttl">医療機関（オンプレミス）</div>
@@ -921,7 +922,7 @@ code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;
     "個情委 FAQ（クラウド例外）":"クラウド事業者が契約上データを取り扱わず適切なアクセス制御をすれば、第三者提供にも委託にも該当しないとする個人情報保護委員会の整理。",
     "法27条（第三者提供）":"個人データの第三者提供は原則本人同意。要配慮個人情報はオプトアウト不可。",
     "医療法施行規則14条2項（産情発0310第2号）":"病院等の管理者にサイバーセキュリティ確保の措置を義務化（2023年4月施行）。立入検査の確認対象。",
-    "二要素認証＝システム運用編14章 遵守事項⑤":"パスワード利用時、令和9年度（2027年4月）以降稼働の新規導入・更新システムは原則二要素認証を採用。",
+    "二要素認証＝システム運用編14章 遵守事項⑤":"パスワードを用いる場合、令和9年度（2027年4月〜）に稼働が想定される新規導入・更新システムは、原則として二要素認証の採用が望ましい（努力規定）。",
     "真正性＝企画管理編1.1.2":"電磁的記録の三原則（真正性・見読性・保存性）。改ざん防止と作成責任者の明確化を求める。",
     "保守＝システム運用編10章":"事業者保守時のアクセスログ記録・医療機関立会い・テストデータ消去等の義務。",
     "事業者向けGL 第2.0版（令和7年3月）":"経産省・総務省による事業者向けガイドライン。令和7年（2025年）3月28日に第2.0版へ改定。",
