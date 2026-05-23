@@ -151,9 +151,13 @@ footer{margin:48px 0 60px}
 .disclaimer{margin-top:18px;font-size:12px;color:var(--text-soft);line-height:1.6}
 
 /* clause tooltip */
-.clause code.has-tip{cursor:pointer;border-color:#7dd3fc;background:#f0f9ff}
+code.has-tip{cursor:pointer}
+code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;height:13px;line-height:13px;text-align:center;font-size:9px;font-family:sans-serif;background:var(--primary-light);color:#fff;border-radius:50%;vertical-align:middle}
+.clause code.has-tip{border-color:#7dd3fc;background:#f0f9ff}
 .clause code.has-tip:hover{background:#e0f2fe}
-.clause code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;height:13px;line-height:13px;text-align:center;font-size:9px;font-family:sans-serif;background:var(--primary-light);color:#fff;border-radius:50%;vertical-align:middle}
+.tech code.has-tip,.matrix code.has-tip,.aws-conn code.has-tip{border-color:var(--aws);background:#fff7ed}
+.tech code.has-tip:hover,.matrix code.has-tip:hover,.aws-conn code.has-tip:hover{background:#ffedd5}
+.tech code.has-tip::after,.matrix code.has-tip::after,.aws-conn code.has-tip::after{background:var(--aws)}
 #tip{position:absolute;z-index:200;max-width:340px;background:#1f2937;color:#e5e7eb;font-size:12.5px;line-height:1.65;padding:12px 15px;border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.28);display:none}
 #tip.show{display:block;animation:fade .15s ease}
 #tip .tip-title{display:block;font-weight:700;color:#7dd3fc;font-size:11.5px;margin-bottom:6px}
@@ -970,6 +974,78 @@ footer{margin:48px 0 60px}
       });
     }
   });
+
+  // AWSサービスをクリックで概要説明（基幹サービス名の最長一致）
+  var awsDesc = {
+    "S3 Object Lock":"S3オブジェクトをWORM（書込一回・読取多数）で保護。コンプライアンスモードはroot権限でも削除・期間短縮ができず、確定記録の改ざん防止に使う。",
+    "S3 SSE-KMS":"S3に保存するデータを、KMS管理の鍵でサーバ側暗号化する方式。",
+    "S3 Glacier":"S3の長期アーカイブ用の低コストストレージ。法定保存期間の長期保管に使う。",
+    "S3 ライフサイクル":"保存期間に応じてストレージクラス移行や自動削除を行うルール。保存期間管理に使う。",
+    "Glacier":"長期アーカイブ用の低コストストレージ。",
+    "KMS":"暗号鍵の作成・管理・ローテーションを行うマネージド鍵管理サービス。顧客管理鍵(CMK)で鍵を自社管理でき、鍵を削除すれば暗号化データを復号不能化（crypto-shredding）できる。",
+    "CloudHSM":"専用ハードウェアセキュリティモジュールで鍵を管理。より厳格な鍵管理要件向け。",
+    "ACM":"TLS証明書の発行・管理サービス。通信のTLS暗号化に使う。",
+    "CloudFront":"CDN。HTTPS配信・エッジでの配信最適化を行う。",
+    "EBS":"EC2向けのブロックストレージ。保存時暗号化に対応。",
+    "RDS":"マネージドなリレーショナルDB。保存時暗号化・自動バックアップに対応。",
+    "Aurora":"高可用なマネージドDB（MySQL/PostgreSQL互換）。暗号化・Multi-AZ対応。",
+    "VPC":"論理的に分離された仮想ネットワーク。内部を最小セグメントに分離する。",
+    "PrivateLink":"インターネットを経由せず、VPC内から対象サービスへ閉域接続する。",
+    "Direct Connect":"オンプレとAWSを専用線で結ぶ閉域接続。",
+    "VPN":"暗号化トンネルでオンプレとAWSを接続する。",
+    "IAM Identity Center":"シングルサインオンと一元的なアクセス管理。MFAや一時的な権限昇格に対応。",
+    "IAM":"AWSリソースへのアクセス権限を最小権限で制御するサービス。",
+    "Cognito":"アプリのユーザー認証サービス。MFA・WebAuthnによる二要素認証に対応。",
+    "WebAuthn":"パスワードレス／二要素認証の標準。生体認証やセキュリティキーを使う。",
+    "SSM Session Manager":"踏み台サーバなしでインスタンスに接続し、全操作をログ記録。保守作業ログの実現手段。",
+    "SSM Parameter Store":"設定値・秘密情報を管理するストア。",
+    "CloudTrail":"AWS APIの操作証跡を記録。誰がいつ何をしたかの監査ログになる。",
+    "CloudWatch":"ログ・メトリクスの収集と監視。",
+    "Config":"リソース構成の変更を記録・評価。構成ドリフトの検知に使う。",
+    "GuardDuty":"脅威検知サービス。不正なアクセスや通信を継続的に検出する。",
+    "Security Hub":"セキュリティ状態を集約し、CIS/NIST等のフレームワーク準拠を評価する。",
+    "Detective":"セキュリティ調査支援。ログを相関分析し原因を追跡する。",
+    "Macie":"S3内の個人情報(PII)を検出・分類する。日本語氏名はカスタムデータ識別子の自前定義が必要。",
+    "Inspector":"脆弱性スキャン。CVE検出とSBOM（CycloneDX/SPDX）出力に対応。",
+    "Network Firewall":"VPCのトラフィックを検査・遮断するマネージドファイアウォール（IDS/IPS相当）。",
+    "WAF":"Webアプリへの不正リクエストを遮断するファイアウォール。",
+    "Multi-AZ":"複数のアベイラビリティゾーンに冗長配置し、可用性を高める構成。",
+    "Route 53":"DNSサービス。フェイルオーバールーティングでBCP/DRに使う。",
+    "Backup Vault Lock":"バックアップを削除不能（コンプライアンスモード）にする。ランサムウェア対策の核。",
+    "AWS Backup":"複数サービスのバックアップを一元管理する。",
+    "Secrets Manager":"DB認証情報・APIキー等の秘密情報を安全に保管し、自動ローテーションする。",
+    "CloudFormation":"インフラをコード(IaC)で定義・管理。構成のドリフト検知も可能。",
+    "Private CA":"プライベート認証局。電子署名や内部証明書の発行に使う。",
+    "Organizations":"複数のAWSアカウントを統合管理。SCPで組織横断のガードレールを設定する。",
+    "SageMaker Model Registry":"機械学習モデルのバージョン管理・承認フロー。SaMDの変更管理に使う。",
+    "SageMaker":"機械学習モデルの学習・推論基盤。",
+    "HAPI FHIR":"オープンソースのFHIRサーバ実装。HealthLakeが国内非提供のため、自前FHIRとして用いる。",
+    "HealthLake":"AWSのマネージドFHIRデータストア。東京/大阪リージョンでは未提供のため国内では使えない。",
+    "API Gateway":"APIの公開・管理。認証・スロットリング・アクセスログに対応。",
+    "Glue":"データ抽出・変換(ETL)。匿名化・仮名化パイプラインに使う。",
+    "ECS":"コンテナ実行基盤（Fargate等）。LISアプリやFHIRサーバの実行に使う。",
+    "EKS":"マネージドKubernetes。コンテナアプリの実行基盤。",
+    "AWS Artifact":"AWSのコンプライアンス報告書（ISO認証等）を取得するポータル。",
+    "ap-northeast-1":"AWS東京リージョン。医療データの国内保持に使う。",
+    "ap-northeast-3":"AWS大阪リージョン。DR・データ国内保持に使う。",
+    "クロスリージョン":"別リージョン（大阪等）へデータを複製し、災害時の事業継続を担保する。",
+    "バージョニング":"S3で過去バージョンを保持し、誤削除・改変からの復元を可能にする。"
+  };
+  function findAwsKey(text){ var best=null; for (var k in awsDesc){ if (text.indexOf(k) >= 0 && (!best || k.length > best.length)) best = k; } return best; }
+  document.querySelectorAll('.tech code, .matrix code, .aws-conn code').forEach(function(code){
+    var label = code.textContent.trim();
+    var key = findAwsKey(label);
+    if (key) {
+      code.classList.add('has-tip');
+      code.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = 'aws:' + label;
+        if (tip.classList.contains('show') && tip.dataset.k === id) { hideTip(); return; }
+        tip.dataset.k = id; showTip(code, label, awsDesc[key]);
+      });
+    }
+  });
+
   document.addEventListener('click', hideTip);
   window.addEventListener('resize', hideTip);
   window.addEventListener('scroll', hideTip);
