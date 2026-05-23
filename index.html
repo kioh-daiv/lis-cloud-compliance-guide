@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臨床検査部門システム（LIS）クラウド化 — 法規制対応と技術要件ガイド</title>
+<meta name="description" content="検査・細菌・病理の臨床検査部門システムをクラウドで実現するために満たすべき法規制を、条項・要件・技術スタック・残リスクまで整理し、網羅性を導出フレームワークで示すガイド。">
+<style>
+:root{
+  --primary:#0e4d92; --primary-light:#2563eb; --accent:#06b6d4;
+  --must:#dc2626; --must-bg:#fef2f2; --must-border:#fecaca;
+  --rec:#d97706; --rec-bg:#fffbeb; --rec-border:#fde68a;
+  --defacto:#b45309;
+  --aws:#ff9900; --aws-bg:#fff7ed;
+  --bg:#f8fafc; --bg-card:#ffffff; --text:#1f2937; --text-soft:#6b7280; --border:#e5e7eb;
+  --rr-tech:#2563eb; --rr-ops:#059669; --rr-contract:#7c3aed; --rr-accept:#6b7280;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Sans","Yu Gothic","Meiryo",-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+header{background:linear-gradient(135deg,#0e4d92 0%,#1e3a8a 50%,#06b6d4 100%);color:#fff;padding:48px 0 40px}
+header h1{font-size:26px;font-weight:700;letter-spacing:.01em;margin-bottom:12px}
+header p.sub{font-size:15px;opacity:.92;max-width:820px}
+header .meta{margin-top:18px;font-size:12.5px;opacity:.82}
+header .scope{display:inline-flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+header .scope span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:12.5px}
+
+.intro{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px 26px;margin:28px 0}
+.intro h2{font-size:17px;color:var(--primary);margin-bottom:10px}
+.intro p{margin-bottom:8px}
+.intro p.note{font-size:13px;color:var(--text-soft)}
+
+.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:.02em;white-space:nowrap}
+.badge.must{background:var(--must-bg);color:var(--must);border:1px solid var(--must-border)}
+.badge.rec{background:var(--rec-bg);color:var(--rec);border:1px solid var(--rec-border)}
+.badge.defacto{background:#fff7ed;color:var(--defacto);border:1px solid #fed7aa}
+.badge.scope{background:#eff6ff;color:var(--primary-light);border:1px solid #bfdbfe}
+.badge.new{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 6px}
+.legend .item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-soft)}
+
+/* coverage proof */
+.coverage{background:var(--bg-card);border:2px solid var(--primary);border-radius:14px;padding:26px;margin:24px 0}
+.coverage h2{font-size:19px;color:var(--primary);margin-bottom:6px}
+.coverage .lead{font-size:14px;color:var(--text);margin-bottom:18px}
+.coverage h3{font-size:14px;color:var(--primary);margin:22px 0 10px;padding-left:10px;border-left:4px solid var(--accent)}
+.lifecycle{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px}
+.lifecycle .stage{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 10px}
+.lifecycle .stage .s-name{font-weight:700;color:var(--primary);font-size:13px;margin-bottom:8px;text-align:center;padding-bottom:6px;border-bottom:1px dashed #bfdbfe}
+.lifecycle .stage ul{list-style:none;font-size:11.5px;line-height:1.5}
+.lifecycle .stage li{margin-bottom:4px;color:var(--text)}
+.hierarchy{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.hierarchy .lvl{display:flex;align-items:center;gap:12px;font-size:13px}
+.hierarchy .lvl .tag{flex-shrink:0;width:120px;font-weight:700;color:#fff;background:var(--primary);text-align:center;padding:5px 8px;border-radius:6px;font-size:11.5px}
+.hierarchy .lvl:nth-child(2) .tag{background:#1e6bc7}
+.hierarchy .lvl:nth-child(3) .tag{background:#2f81d6}
+.hierarchy .lvl:nth-child(4) .tag{background:#3f9ae0}
+.hierarchy .lvl:nth-child(5) .tag{background:#56b2e8}
+.scope-decl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+.scope-box{border-radius:10px;padding:14px 16px;font-size:13px}
+.scope-box.in{background:#ecfdf5;border:1px solid #a7f3d0}
+.scope-box.out{background:#f9fafb;border:1px solid var(--border)}
+.scope-box .h{font-weight:700;margin-bottom:8px}
+.scope-box.in .h{color:#059669}
+.scope-box.out .h{color:var(--text-soft)}
+.scope-box ul{list-style:none}
+.scope-box li{padding-left:24px;position:relative;margin-bottom:8px;line-height:1.6}
+.scope-box.in li::before{content:"";position:absolute;left:3px;top:7px;width:8px;height:8px;border-radius:50%;background:#059669}
+.scope-box.out li::before{content:"";position:absolute;left:2px;top:11px;width:11px;height:2px;border-radius:1px;background:var(--text-soft)}
+.rebuttal{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid var(--primary-light);border-radius:8px;padding:14px 18px;margin-top:18px;font-size:13.5px}
+.rebuttal strong{color:var(--primary)}
+
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin:30px 0 4px;flex-wrap:wrap}
+.tab{background:none;border:none;padding:12px 16px;font-size:14px;font-weight:600;color:var(--text-soft);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.panel{display:none;padding-top:20px}
+.panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.card>summary{list-style:none;cursor:pointer;padding:18px 22px;display:flex;align-items:flex-start;gap:12px;justify-content:space-between}
+.card>summary::-webkit-details-marker{display:none}
+.card>summary:hover{background:#fafbfc}
+.card .title-wrap{display:flex;flex-direction:column;gap:6px}
+.card .title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3{font-size:16px;color:var(--primary);font-weight:700}
+.card .basis{font-size:12.5px;color:var(--text-soft)}
+.card .chev{color:var(--text-soft);font-size:13px;transition:transform .2s;flex-shrink:0;margin-top:4px}
+.card[open] .chev{transform:rotate(180deg)}
+.card .body{padding:6px 22px 22px;border-top:1px solid var(--border)}
+
+.clause{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:13px 16px;margin-top:14px;font-size:13px;line-height:1.9}
+.clause .h{font-weight:700;color:var(--primary);font-size:11.5px;letter-spacing:.04em;margin-bottom:4px}
+.clause code{background:#fff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;font-size:12px;color:var(--primary);font-family:"SFMono-Regular",Consolas,monospace;margin:2px 3px 0 0;display:inline-block}
+
+.block{margin-top:16px}
+.block .h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);margin-bottom:8px}
+.block ul,.tech ul{list-style:none;padding-left:0;margin:0}
+.block ul li,.tech ul li{position:relative;padding-left:24px;margin-bottom:10px;font-size:14px;line-height:1.7}
+.block ul li::before,.tech ul li::before{content:"";position:absolute;left:6px;top:11px;width:10px;height:2px;border-radius:1px;background:var(--accent)}
+.req-tag{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.req-tag.must{background:var(--must-bg);color:var(--must);border:1px solid var(--must-border)}
+.req-tag.effort{background:#f3f4f6;color:var(--text-soft);border:1px solid var(--border)}
+
+.tech{background:var(--aws-bg);border:1px solid #fed7aa;border-radius:10px;padding:16px 20px;margin-top:14px}
+.tech .h{color:var(--defacto)}
+.tech .principle{font-size:13.5px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--aws)}
+.tech ul li::before{background:var(--aws)}
+.tech code,.matrix code,.why code{background:#fff;border:1px solid #fed7aa;border-radius:4px;padding:1px 6px;font-size:12.5px;color:var(--defacto);font-family:"SFMono-Regular",Consolas,monospace}
+
+.why{background:#f6f8fa;border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:12px;font-size:13.5px}
+.why .h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);margin-bottom:6px}
+
+.resid{margin-top:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.resid .h{background:#f9fafb;padding:8px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);border-bottom:1px solid var(--border)}
+.resid .row{display:flex;gap:12px;padding:9px 16px;border-bottom:1px solid #f1f5f9;font-size:13px;align-items:flex-start}
+.resid .row:last-child{border-bottom:none}
+.rr{flex-shrink:0;width:88px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:5px;text-align:center}
+.rr.tech{background:#eff6ff;color:var(--rr-tech);border:1px solid #bfdbfe}
+.rr.ops{background:#ecfdf5;color:var(--rr-ops);border:1px solid #a7f3d0}
+.rr.contract{background:#f5f3ff;color:var(--rr-contract);border:1px solid #ddd6fe}
+.rr.accept{background:#f3f4f6;color:var(--rr-accept);border:1px solid var(--border)}
+
+.callout{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid var(--primary-light);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:13.5px}
+.callout strong{color:var(--primary)}
+.callout.warn{background:#fffbeb;border-color:#fde68a;border-left-color:var(--rec)}
+.callout.warn strong{color:var(--rec)}
+
+.matrix{width:100%;border-collapse:collapse;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:13px}
+.matrix th,.matrix td{padding:11px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+.matrix thead th{background:var(--primary);color:#fff;font-weight:600;font-size:12.5px}
+.matrix tbody tr:nth-child(even){background:#fafbfc}
+.matrix td.req{font-weight:600;color:var(--primary)}
+.matrix code{margin:2px 2px 0 0;display:inline-block;font-size:11.5px}
+.matrix .rr{width:auto;display:inline-block;margin-top:2px}
+.legend{align-items:flex-start}
+.legend .item{flex-wrap:wrap}
+.legend .rr{width:auto;display:inline-block;margin:0;vertical-align:middle}
+
+footer{margin:48px 0 60px}
+.sources{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 26px}
+.sources h2{font-size:15px;color:var(--primary);margin-bottom:12px}
+.sources h3{font-size:13px;color:var(--text-soft);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+.sources ul{list-style:none;padding:0}
+.sources li{margin-bottom:6px;font-size:12.5px}
+.sources a{color:var(--primary-light);text-decoration:none;word-break:break-all}
+.sources a:hover{text-decoration:underline}
+.disclaimer{margin-top:18px;font-size:12px;color:var(--text-soft);line-height:1.6}
+
+/* clause tooltip */
+.clause code.has-tip{cursor:pointer;border-color:#7dd3fc;background:#f0f9ff}
+.clause code.has-tip:hover{background:#e0f2fe}
+.clause code.has-tip::after{content:"?";display:inline-block;margin-left:5px;width:13px;height:13px;line-height:13px;text-align:center;font-size:9px;font-family:sans-serif;background:var(--primary-light);color:#fff;border-radius:50%;vertical-align:middle}
+#tip{position:absolute;z-index:200;max-width:340px;background:#1f2937;color:#e5e7eb;font-size:12.5px;line-height:1.65;padding:12px 15px;border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.28);display:none}
+#tip.show{display:block;animation:fade .15s ease}
+#tip .tip-title{display:block;font-weight:700;color:#7dd3fc;font-size:11.5px;margin-bottom:6px}
+#tip::after{content:"";position:absolute;top:-6px;left:22px;border:6px solid transparent;border-bottom-color:#1f2937;border-top:none}
+#tip.below::after{top:auto;bottom:-6px;border-bottom:none;border-top:6px solid #1f2937}
+
+/* aws architecture */
+.aws-note{font-size:13.5px;color:var(--text-soft);margin-bottom:16px}
+.aws-diagram{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fbfcfe}
+.aws-onprem{background:#eef2f7;padding:16px 18px;text-align:center;border-bottom:2px dashed #cbd5e1}
+.aws-onprem .ttl{font-weight:700;color:#475569;font-size:13px;margin-bottom:10px}
+.aws-onprem .nodes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.aws-conn{text-align:center;padding:12px;font-size:12.5px;color:var(--primary);background:#f0f7ff;border-bottom:1px solid #e0ecfb}
+.aws-conn code{background:#fff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 6px;font-size:11.5px;color:var(--primary);font-family:"SFMono-Regular",Consolas,monospace}
+.aws-cloud{padding:22px 16px 16px;border:2px solid var(--aws);margin:16px;border-radius:12px;position:relative}
+.aws-cloud>.region-label{position:absolute;top:-11px;left:16px;background:var(--aws);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:6px}
+.aws-layer{margin-bottom:14px}
+.aws-layer:last-child{margin-bottom:0}
+.aws-layer .l-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-soft);margin-bottom:8px;padding-left:2px}
+.aws-row{display:flex;gap:9px;flex-wrap:wrap}
+.node{border-radius:9px;padding:10px 13px;font-size:12.5px;font-weight:700;border:1px solid;flex:1 1 160px;min-width:160px}
+.node .svc{font-size:11px;font-weight:400;color:var(--text-soft);margin-top:4px;display:block;line-height:1.5}
+.node .req{display:inline-block;font-size:10px;color:#fff;background:var(--text-soft);margin-top:6px;padding:1px 7px;border-radius:4px;font-weight:600}
+.node.enc{background:#fff7ed;border-color:#fed7aa;color:var(--defacto)}
+.node.net{background:#eff6ff;border-color:#bfdbfe;color:var(--primary)}
+.node.auth{background:#ecfdf5;border-color:#a7f3d0;color:#059669}
+.node.app{background:#f5f3ff;border-color:#ddd6fe;color:#7c3aed}
+.node.data{background:#f0f9ff;border-color:#7dd3fc;color:#0369a1}
+.node.mon{background:#fef2f2;border-color:#fecaca;color:var(--must)}
+.aws-leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:11.5px;color:var(--text-soft)}
+.aws-leg span{display:inline-flex;align-items:center;gap:6px}
+.aws-leg i{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+
+@media(max-width:760px){
+  header h1{font-size:21px}
+  .lifecycle{grid-template-columns:1fr 1fr}
+  .scope-decl{grid-template-columns:1fr}
+  .card>summary{padding:16px}
+  .card .body{padding:6px 16px 18px}
+  .matrix{font-size:11.5px}
+  .matrix th,.matrix td{padding:8px 7px}
+  .hierarchy .lvl .tag{width:92px}
+  .resid .row{flex-direction:column;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>臨床検査部門システム（LIS）クラウド化<br>法規制対応と技術要件ガイド</h1>
+    <p class="sub">検査・細菌・病理の臨床検査部門システムをクラウドで実現するにあたり、満たさなければいけない法規制と推奨する対応を、根拠条項・要件・技術スタック・残リスクまで分解して整理する。あわせて「これで網羅できているか」を導出フレームワークで示し、追加質問に答えられる構造にする。</p>
+    <div class="scope">
+      <span>臨床検査（生化学・血液等）</span>
+      <span>細菌・微生物検査</span>
+      <span>病理・細胞診</span>
+    </div>
+    <div class="meta">最終更新：2026年5月 ／ 技術スタックは AWS 主軸＋クラウド非依存の原則で記述</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="intro">
+    <h2>このガイドの構造</h2>
+    <p>部門システムをクラウドへ移すと、医療情報（要配慮個人情報）の取得・保存・利用・提供・廃棄のすべてが、法規制とガイドラインの直接対象になる。本ガイドは各規制を次の 5 段で分解する。</p>
+    <p style="font-size:13.5px;color:var(--text)"><strong>該当条項 → 満たすべき要件 → 技術スタック（原則＋AWS 実現例）→ なぜ担保できるか → 残リスク（引き取り先を 4 分類で明示）</strong></p>
+    <p style="margin-top:10px"><span class="badge must">必須</span> 法令・省令で課される、または医療機関が委託先を選定する前提条件。 <span class="badge defacto">実質必須</span> 法的には推奨だが選定で事実上の前提。 <span class="badge rec">推奨</span> 信頼性・相互運用性・調達競争力を左右する。</p>
+    <p class="note">本資料は 2026 年 5 月時点の一般整理であり、特定組織の対応を保証しない。法規制・ガイドラインは改定される。実際の適用は最新の原典・所管官庁・専門家の確認を前提とする。</p>
+  </div>
+
+  <!-- ===== 網羅性の根拠 ===== -->
+  <div class="coverage">
+    <h2>網羅性の根拠 — なぜ「これで足りる」と言えるか</h2>
+    <p class="lead">法規制を個別に列挙しても「他は？」には終わりがない（不存在の証明はできない）。本ガイドは規制を恣意的に選んでいない。<strong>① 医療情報のデータライフサイクル全段階</strong> × <strong>② 3省2ガイドラインを傘とする法体系</strong> の 2 軸で機械的に洗い出した結果を載せる。漏れを問うなら、この 2 軸のどこに位置づくかを特定すればよい。</p>
+
+    <h3>軸1：データライフサイクル × 関係法規制（段階の網羅）</h3>
+    <div class="lifecycle">
+      <div class="stage"><div class="s-name">取得</div><ul>
+        <li>個情法（要配慮の取得同意 法20条2項）</li><li>検体検査の精度確保（医療法15条の2）</li>
+      </ul></div>
+      <div class="stage"><div class="s-name">保存</div><ul>
+        <li>電子保存の三原則／e-文書法</li><li>記録の法定保存義務</li><li>3省2GL（真正性・保存性）</li>
+      </ul></div>
+      <div class="stage"><div class="s-name">利用</div><ul>
+        <li>3省2GL（アクセス制御・監査・認証）</li><li>薬機法（診断支援＝SaMD）</li><li>精度管理・トレーサビリティ</li>
+      </ul></div>
+      <div class="stage"><div class="s-name">提供・連携</div><ul>
+        <li>個情法（第三者提供27条／越境28条／クラウド例外）</li><li>感染症法（届出 12条）</li><li>標準規格（FHIR/JLAC11）</li><li>次世代医療基盤法（二次利活用）</li>
+      </ul></div>
+      <div class="stage"><div class="s-name">廃棄</div><ul>
+        <li>個情法（廃棄段階の安全管理）</li><li>保存期間満了後の確実な消去</li>
+      </ul></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-soft)">横断（全段階に常時かかる）：医療法施行規則第14条第2項（サイバーセキュリティ確保義務）／ 3省2GL 全般 ／ 事業者要件（ISMS・Pマーク・ISMAP）／ 事業形態（衛生検査所登録）。</p>
+
+    <h3>軸2：法体系の階層（どの階層まで見たか）</h3>
+    <div class="hierarchy">
+      <div class="lvl"><span class="tag">法律</span><span>医療法／個人情報保護法／感染症法／臨床検査技師法／薬機法／次世代医療基盤法／e-文書法</span></div>
+      <div class="lvl"><span class="tag">政省令</span><span>各施行規則／平成30年厚労省令第93号／個情法施行規則</span></div>
+      <div class="lvl"><span class="tag">告示・通知</span><span>医政発0310第2号／医政発0329003号／薬生機審発0331第1号</span></div>
+      <div class="lvl"><span class="tag">ガイドライン</span><span>3省2GL（厚労省第6.0版／事業者向け第2.0版）／SaMD該当性ガイドライン</span></div>
+      <div class="lvl"><span class="tag">認証・業界基準</span><span>ISMS・Pマーク・ISMAP／JAHIS MDS/SDS／学会の標本保存基準</span></div>
+    </div>
+
+    <h3>スコープ宣言（対象と対象外を先に確定する）</h3>
+    <div class="scope-decl">
+      <div class="scope-box in"><div class="h">対象に含む</div><ul>
+        <li>検査・細菌（微生物）・病理（病理診断・細胞診）の LIS のクラウド化</li>
+        <li>分析装置・電子カルテとの連携 I/F</li>
+        <li>SaMD の該当性判定（載せる機能の範囲）</li>
+      </ul></div>
+      <div class="scope-box out"><div class="h">対象外（意図的に除外。必要なら別スコープ）</div><ul>
+        <li>輸血・血液製剤関連の記録（20年保存等）</li>
+        <li>自前で SaMD を製造販売する薬事プロセス全体</li>
+        <li>衛生検査所／ブランチラボの運営許認可そのもの</li>
+        <li>介護・歯科固有要件、電子カルテ本体の機能要件</li>
+      </ul></div>
+    </div>
+
+    <div class="rebuttal">
+      <strong>「じゃ他は大丈夫？」への返し方：</strong> 「ライフサイクルのどの段階か、3省2GL にない新規法令か」を特定してください。本ガイドは各項目を残リスクまで開示しており、隠れた前提はありません。対象外は上記で明示しています（漏れではなく設計判断です）。
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="badge must">必須</span></div>
+    <div class="item"><span class="badge defacto">実質必須</span></div>
+    <div class="item"><span class="badge rec">推奨</span></div>
+    <div class="item"><span class="badge scope">検査区分特有</span></div>
+    <div class="item"><span class="rr tech">技術</span><span class="rr ops">運用</span><span class="rr contract">契約</span><span class="rr accept">受容</span> ＝残リスクの引き取り先</div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-panel="must">必須の法規制</button>
+    <button class="tab" data-panel="rec">推奨する対応</button>
+    <button class="tab" data-panel="matrix">要件 × 技術スタック</button>
+    <button class="tab" data-panel="trace">トレーサビリティ表</button>
+    <button class="tab" data-panel="aws">AWS構成図</button>
+  </div>
+
+  <!-- ===================== 必須 ===================== -->
+  <section class="panel active" id="must">
+
+    <!-- 1 個情法 -->
+    <details class="card" open>
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><h3>個人情報保護法（要配慮個人情報）</h3></div>
+        <div class="basis">個人情報の保護に関する法律 ／ 漏えい等報告・本人通知の義務化は 2022年4月1日 施行</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div>
+          <code>法17条（利用目的の特定）</code><code>法21条（取得時の通知公表）</code><code>法2条3項（要配慮の定義）</code><code>法20条2項（要配慮は原則本人同意）</code><code>法23条（安全管理措置）</code><code>法25条（委託先監督）</code><code>法26条（漏えい等報告・本人通知）</code><code>規則7条（報告対象4類型）</code><code>規則8条（速報・確報の期限）</code><code>法27条（第三者提供）</code><code>法28条（越境移転）</code><code>法33〜35条（開示等請求）</code>
+        </div>
+        <div class="block"><div class="h">なぜ必須か</div>
+          <p style="font-size:14px">検査結果・病理診断・細菌/感染症の情報はすべて「要配慮個人情報」に該当し、取得・保管・通信・提供のすべてに重い取扱いが課される。</p></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>利用目的の特定・通知/公表（法17・21条）。要配慮の取得は原則本人同意（法20条2項）。後の研究等への転用は利用目的の変更手続が必要（法17条2項）</li>
+          <li>安全管理措置（組織的・人的・物理的・技術的）＋「外的環境の把握」（海外保守委託先等の把握、法23条）</li>
+          <li>委託先（クラウド事業者）の監督（法25条）</li>
+          <li>漏えい等報告：要配慮は1件でも個人情報保護委員会へ報告（法26条1項）＋本人通知（同2項）。速報＝速やかに（概ね3〜5日）、確報＝30日以内、<strong>不正アクセス等 故意による場合は60日以内</strong>（規則7・8条）</li>
+          <li>第三者提供は原則本人同意（法27条1項）。要配慮はオプトアウト不可（法27条2項但書）。検査センター等との共有は共同利用スキーム（法27条5項3号）も選択肢</li>
+          <li>越境移転（法28条）：国内リージョン保持に加え、海外アクセス経路・外国法人再委託への対応と本人への情報提供</li>
+          <li>本人からの開示・訂正・利用停止請求への応答（法33〜35条）</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：要配慮個人情報を暗号化し、アクセスを最小権限に絞り、所在を把握し、全アクセスを改ざん不能に証跡化する。</div><ul>
+          <li>暗号化：<code>KMS</code>＋<code>S3 SSE-KMS</code>/<code>RDS・EBS暗号化</code>、転送時 <code>TLS 1.2+ (ACM)</code></li>
+          <li>アクセス制御：<code>IAM 最小権限</code>＋<code>IAM Identity Center</code>、<code>VPC</code>・<code>PrivateLink</code></li>
+          <li>所在把握：<code>Macie</code>（ただし後述の日本語制約あり）、検知 <code>GuardDuty</code>、証跡 <code>CloudTrail</code></li>
+          <li>越境対策：東京 <code>ap-northeast-1</code>／大阪 <code>ap-northeast-3</code> 保持、AWS を再委託先として契約明示</li>
+        </ul></div>
+        <div class="callout warn"><strong>Macie の日本語 PII 制約：</strong> Macie のマネージド識別子は漢字・かなの日本語氏名を検出できない（ローマ字のみ）。保険証番号等の日本固有識別子も非対応。要配慮情報の所在把握には<strong>カスタムデータ識別子（正規表現）の自前定義が前提</strong>。</div>
+        <div class="why"><div class="h">なぜ担保できるか</div>暗号化＋最小権限で「読める者」を限定し、CloudTrail/Config で「誰がいつ何を」を改ざん不能に残せるため、安全管理措置（法23条）と漏えい時の事実調査（法26条）の技術的基盤が成立する。ただし報告判断や本人同意の取得は技術では代替できない。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>漏えい4類型の該当判定・確報（30/60日）の事実調査・本人通知の実施は人手</div></div>
+          <div class="row"><span class="rr contract">契約</span><div>「外的環境の把握」＝海外保守委託先の特定、越境時の本人情報提供は契約・運用で担保</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>開示・訂正・利用停止請求への応答フローの整備</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 2 クラウド例外（新規） -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge new">クラウド化の核心</span><h3>「クラウド例外」— 第三者提供・委託への該当性</h3></div>
+        <div class="basis">個人情報保護委員会 FAQ（法27条／法25条の適用関係）</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当根拠</div><code>個情委 FAQ（クラウド例外）</code><code>法27条（第三者提供）</code><code>法25条（委託先監督）との適用関係</code></div>
+        <div class="block"><div class="h">論点（LIS クラウド化で最重要級）</div>
+          <p style="font-size:14px">クラウド事業者が <strong>(1) 契約上 個人データを取り扱わない旨を定め、(2) 適切なアクセス制御を行っている</strong> 場合、当該クラウド利用は法27条の「第三者提供」にも法25条の「委託」にも該当しない、という個情委の整理（クラウド例外）がある。この成否で<strong>法的責任構造が根本から変わる</strong>。</p></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>クラウド事業者が保存データの内容に関与しない設計（暗号化・鍵の自社管理）</li>
+          <li>「個人データを取り扱わない」旨の契約条項</li>
+          <li>適切なアクセス制御（事業者側がデータにアクセスできない構成）</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：事業者がデータ内容に触れられない状態（顧客管理鍵での暗号化＋アクセス遮断）を技術で作り、それを契約で裏づける。</div><ul>
+          <li>顧客管理鍵：<code>KMS（CMK）</code>/<code>CloudHSM</code> で復号鍵を自社管理</li>
+          <li>アクセス遮断：<code>IAM</code> で事業者ロールのデータアクセスを排除、<code>VPC</code> 閉域</li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>暗号化データの復号鍵を自社が握れば、クラウド事業者は物理的に内容を「取り扱えない」。これがクラウド例外の 2 要件のうち技術側を満たす。残りは契約条項で確定する。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr contract">契約</span><div>「取り扱わない」旨の契約条項がなければ例外は不成立。契約・SLA で必須明記</div></div>
+          <div class="row"><span class="rr accept">受容</span><div>運用上どうしても事業者がデータに触れる設計（マネージドサービス内部処理等）では例外を取れず、委託先監督義務（法25条）がフルに残る</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 3 医療法施行規則14条2項+3省2GL -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><h3>サイバーセキュリティ確保義務 ＋ 3省2ガイドライン</h3></div>
+        <div class="basis">医療法施行規則 第14条第2項（2023年4月1日施行）／ 厚労省GL第6.0版（令和5年5月）＋ 事業者向けGL第2.0版（令和7年3月28日改定）</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div>
+          <code>医療法施行規則14条2項（産情発0310第2号）</code><code>厚労省GL第6.0版（概説/経営管理/企画管理/システム運用）</code><code>二要素認証＝システム運用編14章 遵守事項⑤</code><code>真正性＝企画管理編1.1.2</code><code>保守＝システム運用編10章</code><code>事業者向けGL 第2.0版（令和7年3月）</code>
+        </div>
+        <div class="callout"><strong>3省2ガイドラインとは：</strong> 厚労省「医療情報システムの安全管理に関するガイドライン第6.0版」（医療機関向け）＋ 経産省・総務省「医療情報を取り扱う情報システム・サービスの提供事業者における安全管理ガイドライン<strong>第2.0版（令和7年3月28日改定）</strong>」（事業者向け）。第6.0版は概説編・経営管理編・企画管理編・システム運用編の4編構成。</div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>CIA（機密性・完全性・可用性）のバランスと ISMS の構築・運用</li>
+          <li>電磁的記録の三原則（真正性・見読性・保存性、企画管理編1.1.2）</li>
+          <li>責任分界を契約・SLA で明文化。複数機能を束ねる「取りまとめ事業者」型がGL推奨。SaaS/PaaS/IaaS 類型別の責任分界</li>
+          <li>利用者認証。パスワード利用時は2027年4月（令和9年度）以降稼働の新規・更新システムで二要素認証（運用編14章⑤）。放射線管理区域・調剤室等の物理区画認証は「二要素相当」の例外あり</li>
+          <li>監査ログ・保守作業ログ（アクセス記録の識別情報を時系列表示、保守は医療機関立会い、運用編10章）</li>
+          <li>不正通信の検知・遮断（IDS/IPS）、意図せぬ設定変更の自動検知、ゼロトラスト</li>
+          <li>BCP の整備・訓練、CSIRT、非常時の説明責任・善後策責任（経営管理編 表1-1）</li>
+          <li>海外クラウドを再委託先とする場合の事前承認スキーム</li>
+          <li>標準形式での入出力機能</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：確定記録は改ざん不能で保存し、操作を時系列で証跡化。認証は二要素、ネットワークは閉域＋最小セグメント、構成変更と不正通信を自動検知する。</div><ul>
+          <li>真正性：<code>S3 Object Lock（コンプライアンスモード）</code>＋バージョニング＋時刻同期(NTP)、署名は <code>KMS非対称鍵</code>/<code>AWS Private CA</code></li>
+          <li>二要素認証：<code>Cognito MFA</code>/<code>IAM Identity Center MFA</code>、WebAuthn・ICカード</li>
+          <li>監査ログ：<code>CloudTrail</code>＋<code>Config</code>＋<code>CloudWatch Logs</code>、ログ自体を <code>Object Lock</code> 化</li>
+          <li>脅威検知(IDS/IPS相当)：<code>GuardDuty</code>＋<code>Network Firewall</code>＋<code>WAF</code>＋<code>Security Hub</code>＋<code>Detective</code></li>
+          <li>構成ドリフト検知：<code>AWS Config</code>＋<code>CloudFormation ドリフト検知</code></li>
+          <li>閉域：<code>Direct Connect</code>/<code>VPN</code>＋<code>PrivateLink</code>。BCP/DR：<code>Multi-AZ</code>＋クロスリージョン <code>AWS Backup</code>＋<code>Route 53</code></li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>Object Lock コンプライアンスモードは root 権限でも削除・期間短縮ができないため、確定記録の真正性を技術的に保証する（ガバナンスモードは特権者が bypass 可能なので不十分）。検知系は不正通信・構成変更を継続監視し、サイバーセキュリティ確保義務の技術的下支えになる。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>「医療提供への著しい支障の回避」＝BCP・訓練・非常時の説明責任は組織運用が本体。技術は復旧能力のみ担保</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>確定操作の承認フロー・代行入力の識別、二要素の物理区画「相当」判定、既存端末の更新管理</div></div>
+          <div class="row"><span class="rr contract">契約</span><div>取りまとめ事業者の責任分界、海外再委託の事前承認は契約・SLA</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 4 インシデント報告（新規） -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge new">運用要件</span><h3>インシデント・サイバー被害の報告ルート</h3></div>
+        <div class="basis">医療法施行規則14条2項の運用 ／ 個情法26条 ／ 厚労省 医政局参事官室</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当根拠</div><code>医療法施行規則14条2項（運用）</code><code>個情法26条（要配慮は1件でも報告）</code><code>厚労省 医政局 医療情報担当参事官室</code></div>
+        <div class="block"><div class="h">満たすべき要件（多重報告ルート）</div><ul>
+          <li>サイバー攻撃・障害時：厚労省 医政局 医療情報担当参事官室へ速やかに連絡</li>
+          <li>要配慮個人情報の漏えい（おそれ含む）：個人情報保護委員会へ報告（1件でも）＋本人通知</li>
+          <li>必要に応じて警察・IPA への連絡</li>
+          <li>ランサムウェアは VPN 機器・保守回線が主要侵入経路。保守セキュリティ（運用編10章：保守専用アカウント・立会い・作業計画書照合・テストデータ消去確認）を独立論点として整備</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：検知を自動化し、誰が・いつ・何にアクセスしたかを即座に再構成できる状態にして、報告判断の事実基盤を用意する。</div><ul>
+          <li>検知・相関：<code>GuardDuty</code>＋<code>Security Hub</code>＋<code>Detective</code></li>
+          <li>保守アクセス：<code>SSM Session Manager</code>（踏み台レス・全操作ログ）＋ <code>CloudTrail</code></li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>SSM Session Manager は保守作業を踏み台なしで仲介し全操作を記録するため、運用編10章の「保守作業ログ・アクセス証跡」を技術で満たせる。検知系がインシデントの起点を特定し報告期限の起算を可能にする。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>報告先・期限の判断、医政局参事官室／個情委への実際の連絡は完全に人的運用。技術は非担保</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>保守時の医療機関立会い・作業計画書照合は運用ルール</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 5 検体検査の精度確保 -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge scope">検査・細菌・病理</span><h3>検体検査の精度の確保</h3></div>
+        <div class="basis">医療法第15条の2 ／ 施行規則第9条の7の2・9条の8 ／ 平成30年厚労省令第93号 ／ 2018年12月1日 施行</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>医療法15条の2（根拠法）</code><code>施行規則9条の7の2（自院検査：内部精度管理/外部精度管理調査/研修）</code><code>施行規則9条の7の3</code><code>施行規則9条の8（衛生検査所・受託）</code><code>平成30年厚労省令第93号</code><code>医政発0810第1号</code></div>
+        <div class="block"><div class="h">なぜ必須か</div>
+          <p style="font-size:14px">2018年改正で検体検査の精度確保が法制化。検査・細菌（微生物）・病理（病理組織・免疫組織化学・細胞・分子病理）はいずれも検体検査に含まれ、精度管理の記録・トレーサビリティを LIS が担う。</p></div>
+        <div class="block"><div class="h">満たすべき要件（必須／努力義務の濃淡に注意）</div><ul>
+          <li><span class="req-tag must">必須</span>精度確保責任者（医師または臨床検査技師）の配置、標準作業書・作業日誌・台帳の整備</li>
+          <li><span class="req-tag effort">努力義務</span>内部精度管理（精密度・再現性）、外部精度管理調査の受検、適切な研修（自院検査の場合）</li>
+          <li><span class="req-tag must">必須</span>遺伝子関連・染色体検査を行う場合は別途責任者（ISO15189取得は努力義務）</li>
+          <li>LIS 機能面：精度管理記録・SOP・研修記録・トレーサビリティ（試薬ロット・装置校正）の改ざん防止保持</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：精度管理記録を改ざん不能で長期保存し、検査結果のトレーサビリティ（誰が・どの装置で・どの試薬ロットで・いつ）を担保する。</div><ul>
+          <li>記録保管：<code>S3 Object Lock（コンプライアンスモード）</code>＋<code>Glacier</code>、構造化記録は <code>RDS</code></li>
+          <li>トレーサビリティ：装置・試薬ロット・校正記録を時刻同期付きで記録、<code>CloudTrail</code> で操作証跡</li>
+          <li>SOP・研修記録：バージョニング付き <code>S3</code> で版管理</li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>WORM 保存＋時刻同期で「いつ・誰が・何を」を後から改変できない形で残せるため、精度管理記録の真正性とトレーサビリティを技術的に保証できる。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>精度確保責任者の選任は人事・組織。システムは「誰が責任者か」を保持できても選任義務は果たせない</div></div>
+          <div class="row"><span class="rr contract">契約</span><div>LIS 外の分析装置/ミドルウェアとの連携でロット情報が欠落しない保証は I/F 仕様・契約</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>作業日誌の「リアルタイム記録性」（後追い一括入力の防止）は運用ルール</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 6 衛生検査所登録（新規） -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge new">受託する場合</span><h3>衛生検査所の登録</h3></div>
+        <div class="basis">臨床検査技師等に関する法律 第20条の3（都道府県知事の登録）</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>臨床検査技師等に関する法律 20条の3</code><code>構造設備・管理組織・精度確保方法が省令基準</code></div>
+        <div class="block"><div class="h">なぜ必須か（事業形態次第）</div>
+          <p style="font-size:14px">クラウド LIS で検査を受託する形態（ブランチラボ・衛生検査所）を取る場合、都道府県知事の登録が必要。登録基準には精度確保の方法が含まれる。LIS 単体提供なら直接の対象外だが、受託検査と一体で提供するなら必須。</p></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr contract">契約</span><div>都道府県知事登録は事業者の許認可マター。技術担保は不可、事業形態の設計で要否判定</div></div>
+          <div class="row"><span class="rr accept">受容</span><div>LIS 単体提供（受託しない）なら対象外。スコープを切ることで除外</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 7 感染症法 -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge scope">細菌・微生物</span><h3>感染症法（届出・発生動向調査の連携）</h3></div>
+        <div class="basis">感染症の予防及び感染症の患者に対する医療に関する法律 第12条（医師の届出義務）</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>感染症法 12条（医師の届出義務）</code><code>1〜4類：直ちに ／ 5類：原則7日以内（侵襲性髄膜炎菌感染症等は直ちに）</code></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>届出対象（特定病原体検出・感染症発生）の判定と、届出データの正確な生成・連携</li>
+          <li>発生動向調査システムとの連携経路の機密性・完全性</li>
+          <li>連携した届出の証跡保持</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：外部連携を暗号化された限定経路に閉じ、連携の証跡を残す。</div><ul>
+          <li>連携経路：<code>API Gateway</code>＋TLS、必要に応じ <code>PrivateLink</code>/<code>VPN</code></li>
+          <li>証跡：<code>CloudTrail</code>・<code>CloudWatch Logs</code></li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>限定経路＋証跡で連携データの機密性・完全性と「いつ連携したか」を残せる。ただし届出の最終責任は医師にあり、システムはアラート・データ生成支援に留めるべき。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>届出判定の最終責任は医師。システムが自動届出を「診断」化すると SaMD 該当の縁に近づく</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 8 電子保存三原則 -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><h3>電子保存の三原則 ／ e-文書法</h3></div>
+        <div class="basis">e-文書法（平成16年法律第149号・第150号、2005年4月施行）／ 医療の電子保存根拠＝平成14年 医政発0329003号 ＋ GL企画管理編1.1.2</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>e-文書法 平成16年法律149号（通則法）/150号（整備法）</code><code>医政発0329003号（平成14年）</code><code>GL企画管理編1.1.2（施行通知第二の2(3)）</code></div>
+        <div class="callout"><strong>根拠の整理：</strong> 「e-文書法（厚労省令）」ではなく、本体は法律（149/150号）＋医療分野の電子保存を認める平成14年 医政発0329003号通知＋安全管理GL。</div>
+        <div class="block"><div class="h">満たすべき要件（電磁的記録の三原則）</div><ul>
+          <li>真正性：作成責任者の所在が明確で、虚偽入力・書換え・消去・混同を防止</li>
+          <li>見読性：必要時に直ちに明瞭な形で表示・書面化できる</li>
+          <li>保存性：保存期間中、復元可能な状態で保存</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：確定後の改変を物理的に不能にし（真正性）、いつでも標準形式で出力でき（見読性）、法定期間を冗長に保持する（保存性）。</div><ul>
+          <li>真正性：<code>S3 Object Lock（コンプライアンスモード）</code>＋バージョニング＋タイムスタンプ</li>
+          <li>見読性：標準フォーマット（PDF/A・FHIR）での表示・出力</li>
+          <li>保存性：<code>S3 Glacier</code>＋クロスリージョン複製</li>
+        </ul></div>
+        <div class="why"><div class="h">なぜ担保できるか</div>コンプライアンスモードの WORM で確定記録の不可変性（真正性）、標準フォーマット出力で見読性、Glacier＋複製で保存性をそれぞれ技術的に満たす。</div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>確定操作の承認・代行入力の識別は業務運用</div></div>
+          <div class="row"><span class="rr tech">技術</span><div>法定期間を超えるフォーマット陳腐化対策（マイグレーション）は追加技術・運用で要監視</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 9 記録保存義務 -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><h3>記録の法定保存義務</h3></div>
+        <div class="basis">診療録5年（医師法24条）／ 臨床検査技師法施行規則（外部保存・電磁的記録）／ 病理標本は学会基準</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>医師法24条（診療録5年）</code><code>臨検法施行規則（外部保存・電磁的記録）</code><code>外部保存＝医政発0329003号の3条件</code><code>GL企画管理編 人的管理⑥g（外部保存能力の確認、Q&A企Q-23）</code></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>法定保存期間（診療録5年等）の確実な保持</li>
+          <li>外部（クラウド）保存の基準（医政発0329003号の3条件：電子保存可・責任の所在明確化・個人情報保護措置）への適合</li>
+          <li>外部保存先の「技術及び運用能力の有無」の確認（ISMAP/JASA CS ゴールドマーク等、Q&A企Q-23）。保存委託は第三者提供に当たらない（委託）</li>
+        </ul></div>
+        <div class="callout warn"><strong>病理標本の保存は法令ではなく学会基準：</strong> 病理組織標本10年・パラフィンブロック10年・細胞診ガラス標本5年〜（日本病理学会・日本臨床細胞学会のガイドライン）。法令保存義務ではない点に注意。LIS が持つのは画像とメタデータで、物理標本（ブロック・ガラス）の管理は別系。</div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：保存期間をライフサイクルで自動管理し、期間中の消失・改変を防ぎ、国内に保持する。</div><ul>
+          <li>保存期間管理：<code>AWS Backup</code>＋<code>S3 ライフサイクル</code></li>
+          <li>長期低コスト：<code>S3 Glacier</code>/<code>Glacier Deep Archive</code>、国内リージョン限定</li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr contract">契約</span><div>外部保存先（AWS）の能力確認・再委託承認・SLA は契約担保。技術では代替不能</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>物理標本（ブロック・ガラス）の保存は LIS 外、別系の運用で担保</div></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 10 薬機法/SaMD -->
+    <details class="card">
+      <summary>
+        <div class="title-wrap"><div class="title-row"><span class="badge must">必須</span><span class="badge scope">該当機能を載せる場合</span><h3>薬機法（プログラム医療機器 / SaMD）と病理診断の医行為性</h3></div>
+        <div class="basis">医薬品医療機器等法 ／ SaMD該当性ガイドライン（令和3年3月31日 薬生機審発0331第1号、令和5年改正）</div></div>
+        <span class="chev">▼</span>
+      </summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当根拠</div><code>薬機法</code><code>プログラムの医療機器該当性ガイドライン 令和3年薬生機審発0331第1号</code><code>病理診断＝医行為（責任主体は病理医）</code></div>
+        <div class="callout"><strong>該当性に注意：</strong> 検査結果の管理・保管・通信にとどまる通常の LIS は医療機器に非該当。病理 AI 画像診断・検査結果からの診断支援など、診断・治療の判断に用いる機能を組み込むと SaMD に該当しうる。</div>
+        <div class="block"><div class="h">該当する場合の要件</div><ul>
+          <li>SaMD 該当性判定（クラス分類、令和3年ガイドライン）</li>
+          <li>製造販売業の許可・承認/認証、QMS 下での設計管理、市販後安全管理</li>
+          <li>病理診断は医師（病理専門医）が行う医行為。テレパソロジーでも確定診断の責任主体は病理医で、クラウドは画像保管・閲覧・伝送に限定</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：診断支援機能は QMS・設計管理の対象として検査結果管理の機能とライフサイクルを分離。該当性判定を実装より先に行う。</div><ul>
+          <li>推論基盤：<code>SageMaker</code>（該当性・薬事対応の確定が前提）</li>
+          <li>変更管理：<code>SageMaker Model Registry</code> でモデル・アルゴリズムの版管理と検証記録</li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>該当性判定→製造販売業許可・QMS は薬事プロセス。誤判定は無許可製造販売（薬機法違反）に直結</div></div>
+          <div class="row"><span class="rr accept">受容</span><div>診断支援を載せない設計なら対象外。スコープを切ることで除外</div></div>
+        </div>
+      </div>
+    </details>
+
+  </section>
+
+  <!-- ===================== 推奨 ===================== -->
+  <section class="panel" id="rec">
+
+    <details class="card" open>
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge defacto">実質必須</span><h3>ISMS（JIS Q 27001:2023 / ISO 27001）＋ ISO 27017 / 27018</h3></div>
+        <div class="basis">情報セキュリティマネジメント ／ クラウドセキュリティ（27017）・クラウドPII保護（27018）</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当基準</div><code>JIS Q 27001:2023（ISO/IEC 27001:2022 対応）</code><code>ISO/IEC 27017</code><code>ISO/IEC 27018</code><code>事業者向けGL第2.0版の選定条件</code></div>
+        <div class="block"><div class="h">なぜ実質必須か</div><p style="font-size:14px">事業者向けGL（第2.0版）は ISMS/Pマーク取得を「強く推奨」レベルで位置づける。法的な絶対要件ではないが、医療機関の委託先選定で事実上の前提化しており、保有しないと選ばれにくい。</p></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>ISMS の認証取得・維持（リスクアセスメント、管理策運用、内部監査、マネジメントレビュー）</li>
+          <li>クラウド利用の役割分担・管理策（27017）、クラウド上の個人情報取扱い（27018）</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：AWS は責任共有モデルでインフラ側認証を保持。自社は運用プロセスを ISMS に乗せ準拠を可視化する。</div><ul>
+          <li>AWS 側：主要サービスが ISO 27001/27017/27018 取得済み（<code>AWS Artifact</code> で証跡）</li>
+          <li>可視化：<code>Security Hub</code> でフレームワーク準拠を継続評価</li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>自社の運用プロセスの認証取得は利用者責任。AWS の認証は自社認証を代替しない</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge defacto">実質必須</span><h3>プライバシーマーク（JIS Q 15001）</h3></div>
+        <div class="basis">個人情報保護マネジメントシステム</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当基準</div><code>JIS Q 15001</code><code>事業者向けGLの選定前提</code></div>
+        <div class="block"><div class="h">なぜ実質必須か</div><p style="font-size:14px">ISMS と並ぶ選定前提。要配慮個人情報を扱う事業者として、個人情報保護マネジメントの第三者認証が信頼の土台になる。取得・利用・保管・廃棄の各段階管理を含む。</p></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>PMS の構築・運用・認証維持は組織運用</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge rec">推奨</span><h3>ISMAP / ISMAP-LIU</h3></div>
+        <div class="basis">政府情報システムのためのセキュリティ評価制度（2020年6月運用開始）／ ISMAP-LIU は2022年11月開始 ／ 所管：デジタル庁ほか</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当制度</div><code>ISMAP（2020年6月〜）</code><code>ISMAP-LIU（2022年11月〜、低リスクSaaS向け）</code><code>所管：国家サイバー統括室・デジタル庁・総務省・経産省</code></div>
+        <div class="block"><div class="h">なぜ推奨か</div><p style="font-size:14px">政府機関は原則 ISMAP リストから調達する。公的医療機関・政府系調達では前提になる場面がある。民間病院では必須要件ではないため「推奨」。自社 SaaS を登録すれば公的調達に乗りやすい。</p></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div><ul>
+          <li>多くの AWS サービスが ISMAP 登録済み。これを基盤に自社 SaaS の管理策を整備・登録</li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>ISMAP 管理基準に基づく管理策整備と外部監査は自社対応</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge rec">推奨</span><span class="badge scope">二次利活用する場合</span><h3>次世代医療基盤法（改正）と個情法の加工情報</h3></div>
+        <div class="basis">医療分野の研究開発に資するための匿名加工医療情報及び仮名加工医療情報に関する法律 ／ 公布2023年5月26日・施行2024年4月1日</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当条項</div><code>次世代医療基盤法 33条（作成事業者認定）</code><code>41条（利活用者認定）</code><code>57条（仮名加工提供）</code><code>個情法 41〜43条（仮名加工/匿名加工情報）</code></div>
+        <div class="block"><div class="h">なぜ推奨か</div><p style="font-size:14px">改正で「仮名加工医療情報」が新設され、匿名加工より緩やかな加工基準での研究利用が可能に。検査データを二次利活用するなら認定事業者連携を見据えた設計が有利。なお個情法本体の仮名加工/匿名加工情報（法41〜43条）とは制度が別で、使い分けが論点。</p></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>本人へのオプトアウト通知等の法定手続</li>
+          <li>認定（仮名/匿名加工）医療情報作成事業者・利用事業者の枠組みに沿った提供（33・41条）、再識別禁止</li>
+        </ul></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div>
+          <div class="principle">原則：二次利用データは加工・匿名化し、一次診療用データと環境・権限を分離する。</div><ul>
+          <li>加工：<code>AWS Glue</code>＋<code>Macie</code>（識別子検出・マスキング、日本語はカスタム識別子）</li>
+          <li>分離：研究用は別アカウント/別VPC、<code>Organizations + SCP</code></li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr contract">契約</span><div>自社で仮名加工医療情報を作るには認定（33/41条）が必要。技術だけでは利活用不可</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge rec">推奨</span><h3>標準規格対応（HL7 FHIR JP Core / JLAC11）</h3></div>
+        <div class="basis">3省2GL システム運用編で標準形式入出力を要求 ／ 電子カルテ情報共有サービス対応の前提</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="clause"><div class="h">該当根拠</div><code>GLシステム運用編（標準形式入出力）</code><code>HL7 FHIR JP Core</code><code>JLAC11（検査値標準コード）</code></div>
+        <div class="block"><div class="h">なぜ推奨（実態は要件化が進行）か</div><p style="font-size:14px">ガイドラインは標準形式での入出力機能を求める。JLAC11 と FHIR JP Core 対応は電子カルテ情報共有サービス接続の前提。相互運用性を欠くと「土管化」しデータ連携の主導権を失う。</p></div>
+        <div class="block"><div class="h">満たすべき要件</div><ul>
+          <li>検査項目コードの JLAC11 対応、標準コードセットの実装</li>
+          <li>HL7 FHIR（JP Core）での入出力 API、変換容易なデータ形式での保持</li>
+        </ul></div>
+        <div class="callout warn"><strong>HealthLake は国内非提供：</strong> AWS HealthLake（マネージドFHIRストア）は東京/大阪リージョンで未提供。国内保持要件と矛盾するため、国内現実解は <code>API Gateway</code>＋自前FHIRサーバ（<code>HAPI FHIR</code> を <code>ECS/EKS</code>）＋<code>Aurora</code>。</div>
+        <div class="tech"><div class="h">技術スタックで満たす</div><ul>
+          <li>FHIR：<code>API Gateway</code>＋<code>HAPI FHIR (ECS/EKS)</code>＋<code>Aurora</code></li>
+          <li>コード変換：マッピングテーブルを <code>RDS</code> 管理し標準コードへ変換</li>
+        </ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr tech">技術</span><div>マネージドFHIRが国内非提供のため自前運用。可用性・パッチは自社負担</div></div>
+          <div class="row"><span class="rr ops">運用</span><div>JLAC11/JP Core のマッピング保守は継続運用</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge rec">推奨</span><h3>サイバーセキュリティ経営ガイドライン / NIST CSF</h3></div>
+        <div class="basis">経済産業省・IPA ／ NIST Cybersecurity Framework</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="block"><div class="h">なぜ推奨か</div><p style="font-size:14px">経営層のセキュリティガバナンスを明文化し、技術対策を経営の意思決定に接続する。NIST CSF 併用で海外パートナー・監査への説明力が高まる。</p></div>
+        <div class="tech"><div class="h">技術スタックで満たす</div><ul><li><code>Security Hub</code> の標準（CIS/NIST等）で準拠状況をスコア化し経営報告に接続</li></ul></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr ops">運用</span><div>経営層の関与・体制づくりは組織運用</div></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><div class="title-wrap"><div class="title-row"><span class="badge rec">推奨</span><h3>JAHIS MDS/SDS による開示</h3></div>
+        <div class="basis">保健医療福祉情報システム工業会 ／ 製造業者・サービス事業者による医療情報セキュリティ開示書</div></div><span class="chev">▼</span></summary>
+      <div class="body">
+        <div class="block"><div class="h">なぜ推奨か</div><p style="font-size:14px">自社製品・サービスの医療情報セキュリティ仕様を病院に標準フォーマット（MDS/SDS）で開示できる。契約・SLA とあわせて責任分界を明文化する手段になり、選定時の信頼を高める。</p></div>
+        <div class="resid"><div class="h">残リスクと引き取り先</div>
+          <div class="row"><span class="rr contract">契約</span><div>開示内容と実装の整合は契約・SLA で担保</div></div>
+        </div>
+      </div>
+    </details>
+
+  </section>
+
+  <!-- ===================== 技術スタック対応表 ===================== -->
+  <section class="panel" id="matrix">
+    <p style="font-size:13.5px;color:var(--text-soft);margin-bottom:14px">各要件カテゴリの原則と AWS 実現例、主たる残リスクの引き取り先。AWS 以外（Azure/GCP）でも同じ原則を等価サービスで満たせばよい。</p>
+    <div style="overflow-x:auto">
+    <table class="matrix">
+      <thead><tr><th style="width:17%">要件カテゴリ</th><th style="width:27%">満たすべき原則</th><th style="width:38%">AWS 実現例</th><th style="width:18%">主な残リスク</th></tr></thead>
+      <tbody>
+        <tr><td class="req">保存時暗号化</td><td>全医療情報を保存時に暗号化</td><td><code>KMS</code><code>S3 SSE-KMS</code><code>RDS/EBS/Aurora暗号化</code></td><td><span class="rr ops">運用</span>鍵運用</td></tr>
+        <tr><td class="req">転送時暗号化</td><td>通信をすべて TLS 化</td><td><code>ACM (TLS1.2+)</code><code>CloudFront HTTPS</code></td><td><span class="rr accept">受容</span>低</td></tr>
+        <tr><td class="req">鍵管理・ローテーション</td><td>鍵を分離管理し定期ローテ、顧客管理鍵</td><td><code>KMS（自動ローテ既定365日）</code><code>CloudHSM</code></td><td><span class="rr ops">運用</span>鍵削除権限の分掌</td></tr>
+        <tr><td class="req">秘密情報管理</td><td>認証情報・APIキーを安全に管理・自動ローテ</td><td><code>Secrets Manager</code><code>SSM Parameter Store</code></td><td><span class="rr ops">運用</span>ローテ設計</td></tr>
+        <tr><td class="req">ネットワーク分離・閉域</td><td>医療機関とは閉域、内部は最小セグメント</td><td><code>VPC</code><code>PrivateLink</code><code>Direct Connect</code><code>VPN</code><code>SG/NACL</code></td><td><span class="rr contract">契約</span>接続仕様</td></tr>
+        <tr><td class="req">認証・二要素</td><td>最小権限＋二要素（2027年4月の新規・更新要件）</td><td><code>IAM</code><code>IAM Identity Center</code><code>Cognito MFA</code><code>WebAuthn</code></td><td><span class="rr ops">運用</span>端末・媒体配布</td></tr>
+        <tr><td class="req">特権アクセス管理・保守ログ</td><td>保守は踏み台レス・全操作記録・立会い</td><td><code>SSM Session Manager</code><code>IAM Identity Center 一時昇格</code><code>CloudTrail</code></td><td><span class="rr ops">運用</span>立会い・計画書照合</td></tr>
+        <tr><td class="req">監査証跡</td><td>誰が・いつ・何を を改ざん不能に記録</td><td><code>CloudTrail</code><code>CloudWatch Logs</code><code>Config</code><code>S3 Object Lock</code></td><td><span class="rr ops">運用</span>ログレビュー</td></tr>
+        <tr><td class="req">真正性（WORM）</td><td>確定記録の改変を物理的に不能に</td><td><code>S3 Object Lock コンプライアンスモード</code><code>バージョニング</code><code>タイムスタンプ</code></td><td><span class="rr accept">受容</span>モード誤選定で不成立</td></tr>
+        <tr><td class="req">電子署名</td><td>作成責任者の真正性を署名で担保</td><td><code>KMS 非対称鍵</code><code>AWS Private CA</code></td><td><span class="rr ops">運用</span>鍵・証明書運用</td></tr>
+        <tr><td class="req">長期保存・保存性</td><td>法定保存期間を確実に保持</td><td><code>S3 Glacier</code><code>AWS Backup</code><code>クロスリージョン複製</code></td><td><span class="rr tech">技術</span>フォーマット陳腐化</td></tr>
+        <tr><td class="req">バックアップ不変性</td><td>ランサム時もバックアップを削除不能に</td><td><code>AWS Backup Vault Lock（コンプライアンス）</code><code>論理エアギャップ</code></td><td><span class="rr accept">受容</span>未設定で削除リスク</td></tr>
+        <tr><td class="req">可用性・BCP/DR</td><td>災害時も継続・復旧（RPO/RTO設計）</td><td><code>Multi-AZ</code><code>リージョン冗長</code><code>Route 53 フェイルオーバー</code></td><td><span class="rr ops">運用</span>訓練・体制</td></tr>
+        <tr><td class="req">脅威検知（IDS/IPS/SIEM）</td><td>不正通信を検知・遮断し相関分析</td><td><code>GuardDuty</code><code>Network Firewall</code><code>WAF</code><code>Security Hub</code><code>Detective</code></td><td><span class="rr ops">運用</span>検知後の対応体制</td></tr>
+        <tr><td class="req">構成ドリフト検知</td><td>意図せぬ設定変更を自動検知</td><td><code>AWS Config Rules</code><code>CloudFormation ドリフト検知</code></td><td><span class="rr ops">運用</span>是正フロー</td></tr>
+        <tr><td class="req">脆弱性管理・SBOM</td><td>CVE 継続スキャンとSBOM管理</td><td><code>Amazon Inspector（SBOM を CycloneDX/SPDX 出力）</code></td><td><span class="rr ops">運用</span>パッチ適用</td></tr>
+        <tr><td class="req">PII 検出・分類</td><td>要配慮個人情報の所在を把握</td><td><code>Macie + カスタムデータ識別子（日本語は必須）</code></td><td><span class="rr tech">技術</span>日本語は自前定義</td></tr>
+        <tr><td class="req">テナント分離</td><td>医療機関間のデータを分離</td><td><code>アカウント分離</code><code>Organizations + SCP</code><code>row-level 分離</code></td><td><span class="rr tech">技術</span>分離方針の設計</td></tr>
+        <tr><td class="req">データ廃棄</td><td>保存期間満了後に確実に消去</td><td><code>KMS 鍵削除による crypto-shredding</code></td><td><span class="rr ops">運用</span>廃棄証跡</td></tr>
+        <tr><td class="req">データローカライゼーション</td><td>医療データを国内に保存</td><td><code>東京 ap-northeast-1</code><code>大阪 ap-northeast-3</code></td><td><span class="rr contract">契約</span>海外アクセス経路</td></tr>
+        <tr><td class="req">標準 API・相互運用</td><td>FHIR・標準形式で入出力</td><td><code>API Gateway + HAPI FHIR(ECS/EKS) + Aurora</code>（HealthLake国内非提供）</td><td><span class="rr ops">運用</span>マッピング保守</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="callout" style="margin-top:18px"><strong>責任共有モデルで「利用者が担う範囲」：</strong> クラウド事業者は物理・ハイパーバイザ・基盤サービスの安全管理を担う。<strong>利用者（システム事業者）は、OS・ミドルのパッチ、暗号鍵の運用、IAM 設計、ログ監視、構成管理、テナント分離、データの分類・廃棄を担う。</strong> 3省2ガイドラインの責任分界は、この境界を契約・SLA に落とし込み、SaaS/PaaS/IaaS の類型ごとに利用者範囲を確定することで成立する。</div>
+  </section>
+
+  <!-- ===================== トレーサビリティ表 ===================== -->
+  <section class="panel" id="trace">
+    <p style="font-size:13.5px;color:var(--text-soft);margin-bottom:14px">「この条項はどこで・どの技術で対応し、何が残るか」を一望する表。監査・顧客説明で「他は？」と問われたとき、条項単位で対応の所在を即答するための索引。</p>
+    <div style="overflow-x:auto">
+    <table class="matrix">
+      <thead><tr><th style="width:14%">法規制</th><th style="width:20%">主な条項</th><th style="width:24%">要件</th><th style="width:24%">主な技術</th><th style="width:18%">残リスク</th></tr></thead>
+      <tbody>
+        <tr><td class="req">個人情報保護法</td><td>法23条（安全管理）</td><td>暗号化・アクセス制御・所在把握</td><td><code>KMS</code><code>IAM</code><code>Macie</code><code>CloudTrail</code></td><td><span class="rr contract">契約</span>外的環境把握</td></tr>
+        <tr><td class="req">個人情報保護法</td><td>法26条＋規則7・8条</td><td>漏えい報告（要配慮1件〜、確報30/60日）</td><td><code>GuardDuty</code><code>Macie</code></td><td><span class="rr ops">運用</span>該当判定・通知</td></tr>
+        <tr><td class="req">個人情報保護法</td><td>法27/28条</td><td>第三者提供・越境制限</td><td>国内リージョン固定</td><td><span class="rr contract">契約</span>越境同意</td></tr>
+        <tr><td class="req">クラウド例外</td><td>個情委FAQ（27/25条）</td><td>取り扱わない＋アクセス制御</td><td><code>KMS(CMK)</code><code>IAM</code></td><td><span class="rr contract">契約</span>条項必須</td></tr>
+        <tr><td class="req">医療法施行規則</td><td>14条2項</td><td>サイバーセキュリティ確保</td><td><code>GuardDuty</code><code>WAF</code><code>Config</code></td><td><span class="rr ops">運用</span>BCP・報告</td></tr>
+        <tr><td class="req">3省2GL</td><td>運用編14章⑤</td><td>二要素認証（2027/4）</td><td><code>Cognito MFA</code><code>WebAuthn</code></td><td><span class="rr ops">運用</span>媒体配布</td></tr>
+        <tr><td class="req">3省2GL</td><td>企画管理編1.1.2</td><td>真正性（電磁的記録）</td><td><code>S3 Object Lock(コンプラ)</code></td><td><span class="rr ops">運用</span>承認フロー</td></tr>
+        <tr><td class="req">3省2GL</td><td>運用編10章</td><td>保守作業ログ・立会い</td><td><code>SSM Session Manager</code></td><td><span class="rr ops">運用</span>立会い</td></tr>
+        <tr><td class="req">検体検査精度確保</td><td>医療法15条の2／規則9条の7の2</td><td>精度管理記録・トレーサビリティ</td><td><code>S3 Object Lock</code><code>RDS</code></td><td><span class="rr ops">運用</span>責任者選任</td></tr>
+        <tr><td class="req">臨検法</td><td>20条の3</td><td>衛生検査所登録</td><td>—</td><td><span class="rr contract">契約</span>許認可</td></tr>
+        <tr><td class="req">感染症法</td><td>12条</td><td>届出データ連携</td><td><code>API Gateway</code><code>CloudTrail</code></td><td><span class="rr ops">運用</span>届出は医師責任</td></tr>
+        <tr><td class="req">e-文書法</td><td>平成14年医政発0329003号</td><td>真正性・見読性・保存性</td><td><code>Object Lock</code><code>Glacier</code></td><td><span class="rr tech">技術</span>陳腐化対策</td></tr>
+        <tr><td class="req">記録保存義務</td><td>医師法24条ほか</td><td>法定期間の保持</td><td><code>AWS Backup</code><code>ライフサイクル</code></td><td><span class="rr contract">契約</span>外部保存能力確認</td></tr>
+        <tr><td class="req">薬機法</td><td>SaMDガイドライン(R3)</td><td>該当機能のQMS・薬事</td><td><code>SageMaker Model Registry</code></td><td><span class="rr ops">運用</span>該当性判定が先</td></tr>
+        <tr><td class="req">次世代医療基盤法</td><td>33/41/57条</td><td>仮名加工の二次利活用</td><td><code>Glue</code><code>Macie</code><code>Org+SCP</code></td><td><span class="rr contract">契約</span>認定が必要</td></tr>
+        <tr><td class="req">ISMS/Pマーク</td><td>JIS Q 27001:2023 / 15001</td><td>選定前提の認証</td><td><code>AWS Artifact</code><code>Security Hub</code></td><td><span class="rr ops">運用</span>自社認証取得</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ===================== AWS構成図 ===================== -->
+  <section class="panel" id="aws">
+    <p class="aws-note">法規制要件を満たす AWS リファレンス構成。医療データは閉域接続で国内リージョン（東京/大阪）に閉じ、暗号化・認証・監査・不変バックアップを多層で配置する。各ノードに主たる対応要件を併記。</p>
+    <div class="aws-diagram">
+      <div class="aws-onprem">
+        <div class="ttl">医療機関（オンプレミス）</div>
+        <div class="nodes">
+          <span class="node net">検査室端末<span class="svc">二要素認証で接続</span></span>
+          <span class="node net">分析装置<span class="svc">検査結果・精度管理データ</span></span>
+          <span class="node net">電子カルテ<span class="svc">FHIR / JLAC11 連携</span></span>
+        </div>
+      </div>
+      <div class="aws-conn">閉域接続 <code>Direct Connect</code> / <code>Site-to-Site VPN</code> ＋ <code>PrivateLink</code>（インターネットを経由しない）</div>
+      <div class="aws-cloud">
+        <span class="region-label">AWS 東京 ap-northeast-1（DR：大阪 ap-northeast-3）</span>
+        <div class="aws-layer">
+          <div class="l-name">入口・認証</div>
+          <div class="aws-row">
+            <span class="node net">Route 53 + WAF + ALB<span class="svc">不正通信の検知・遮断</span><span class="req">3省2GL 運用編13.2</span></span>
+            <span class="node auth">Cognito / IAM Identity Center<span class="svc">二要素認証（MFA / WebAuthn）</span><span class="req">運用編14章⑤ 2027/4</span></span>
+          </div>
+        </div>
+        <div class="aws-layer">
+          <div class="l-name">アプリケーション層（Private Subnet）</div>
+          <div class="aws-row">
+            <span class="node app">ECS / EKS：LIS アプリ<span class="svc">検査・細菌・病理</span></span>
+            <span class="node app">HAPI FHIR サーバ<span class="svc">標準API（HealthLake 国内非提供のため自前）</span><span class="req">運用編 標準形式</span></span>
+            <span class="node net">SSM Session Manager<span class="svc">踏み台レス保守・全操作ログ</span><span class="req">運用編10章 保守</span></span>
+          </div>
+        </div>
+        <div class="aws-layer">
+          <div class="l-name">データ層（暗号化・WORM）</div>
+          <div class="aws-row">
+            <span class="node data">Aurora（暗号化）<span class="svc">検査結果・精度管理記録</span><span class="req">個情法23条</span></span>
+            <span class="node data">S3 Object Lock（コンプラ）+ Glacier<span class="svc">確定記録の改ざん不能・長期保存</span><span class="req">真正性 企画管理編1.1.2</span></span>
+            <span class="node enc">KMS（CMK）/ CloudHSM<span class="svc">顧客管理鍵＝クラウド例外／廃棄は鍵削除</span><span class="req">クラウド例外・廃棄</span></span>
+          </div>
+        </div>
+        <div class="aws-layer">
+          <div class="l-name">監視・ガバナンス層</div>
+          <div class="aws-row">
+            <span class="node mon">CloudTrail / Config<span class="svc">操作証跡・構成変更検知</span><span class="req">監査証跡</span></span>
+            <span class="node mon">GuardDuty / Security Hub / Detective<span class="svc">脅威検知・相関分析</span><span class="req">IDS/IPS 運用編13.2</span></span>
+            <span class="node mon">Macie + カスタム識別子<span class="svc">要配慮PII所在把握（日本語は自前定義）</span><span class="req">個情法23条</span></span>
+            <span class="node mon">Inspector<span class="svc">脆弱性スキャン・SBOM</span><span class="req">事業者向けGL</span></span>
+          </div>
+        </div>
+        <div class="aws-layer">
+          <div class="l-name">バックアップ・BCP/DR</div>
+          <div class="aws-row">
+            <span class="node data">AWS Backup + Vault Lock<span class="svc">削除不能バックアップ（ランサム対策）</span><span class="req">可用性</span></span>
+            <span class="node net">大阪リージョンへクロスリージョン複製<span class="svc">災害時の事業継続（RPO/RTO）</span><span class="req">経営管理編 表1-1</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="aws-leg">
+      <span><i style="background:#fff7ed;border-color:#fed7aa"></i>暗号化・鍵</span>
+      <span><i style="background:#eff6ff;border-color:#bfdbfe"></i>ネットワーク</span>
+      <span><i style="background:#ecfdf5;border-color:#a7f3d0"></i>認証</span>
+      <span><i style="background:#f5f3ff;border-color:#ddd6fe"></i>アプリ</span>
+      <span><i style="background:#f0f9ff;border-color:#7dd3fc"></i>データ</span>
+      <span><i style="background:#fef2f2;border-color:#fecaca"></i>監視</span>
+    </div>
+    <div class="callout" style="margin-top:18px"><strong>この構成が法規制を満たす理由：</strong> 医療データは閉域接続で国内リージョンに閉じ（ローカライゼーション）、保存時 KMS 暗号化＋顧客管理鍵で「クラウド例外」を技術的に成立させる。確定記録は Object Lock コンプライアンスモードで改ざん不能にし（真正性）、全操作を CloudTrail で証跡化、保守は SSM Session Manager で踏み台レス記録する。脅威は GuardDuty 系で検知し、Backup Vault Lock でランサム時もバックアップを保全する。</div>
+  </section>
+
+  <footer>
+    <div class="sources">
+      <h2>出典（一次資料・公的情報）</h2>
+      <h3>医療情報セキュリティ・電子保存</h3>
+      <ul>
+        <li>厚労省 安全管理ガイドライン第6.0版（令和5年5月） <a href="https://www.mhlw.go.jp/stf/shingi/0000516275_00006.html">https://www.mhlw.go.jp/stf/shingi/0000516275_00006.html</a></li>
+        <li>同 システム運用編 <a href="https://www.mhlw.go.jp/content/10808000/001582980.pdf">https://www.mhlw.go.jp/content/10808000/001582980.pdf</a> ／ Q&amp;A 令和7年5月 <a href="https://www.mhlw.go.jp/content/10808000/001145860.pdf">https://www.mhlw.go.jp/content/10808000/001145860.pdf</a></li>
+        <li>経産省・総務省 事業者向けガイドライン 第2.0版（令和7年3月28日） <a href="https://www.meti.go.jp/policy/mono_info_service/healthcare/01gl_20250328.pdf">https://www.meti.go.jp/policy/mono_info_service/healthcare/01gl_20250328.pdf</a></li>
+        <li>厚労省 医療分野のサイバーセキュリティ対策（医療法施行規則改正・立入検査） <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/johoka/cyber-security.html">https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/johoka/cyber-security.html</a></li>
+        <li>診療録等の保存を行う場所について 医政発0329003号（平成14年） <a href="https://www.mhlw.go.jp/web/t_doc?dataId=00ta6739">https://www.mhlw.go.jp/web/t_doc?dataId=00ta6739</a></li>
+        <li>e-文書法（平成16年法律第149号, e-Gov） <a href="https://laws.e-gov.go.jp/law/421AC0000000066/">https://laws.e-gov.go.jp/law/421AC0000000066/</a></li>
+      </ul>
+      <h3>個人情報・データ利活用</h3>
+      <ul>
+        <li>個人情報保護委員会 漏えい等報告・本人通知の義務化 <a href="https://www.ppc.go.jp/news/kaiseihou_feature/roueitouhoukoku_gimuka/">https://www.ppc.go.jp/news/kaiseihou_feature/roueitouhoukoku_gimuka/</a></li>
+        <li>個情委 医療・介護関係事業者ガイダンス <a href="https://www.ppc.go.jp/personalinfo/legal/iryoukaigo_guidance/">https://www.ppc.go.jp/personalinfo/legal/iryoukaigo_guidance/</a></li>
+        <li>個情委 FAQ（クラウド例外 1-Q7-53） <a href="https://www.ppc.go.jp/all_faq_index/faq1-q7-53/">https://www.ppc.go.jp/all_faq_index/faq1-q7-53/</a></li>
+        <li>個情法施行規則（漏えい報告 4類型・期限, e-Gov） <a href="https://laws.e-gov.go.jp/law/428M60020000003">https://laws.e-gov.go.jp/law/428M60020000003</a></li>
+        <li>内閣府 改正次世代医療基盤法 <a href="https://www8.cao.go.jp/iryou/hourei/hourei.html">https://www8.cao.go.jp/iryou/hourei/hourei.html</a></li>
+      </ul>
+      <h3>検査業務固有</h3>
+      <ul>
+        <li>厚労省 検体検査の精度の確保に係る基準について <a href="https://www.mhlw.go.jp/content/10800000/000911173.pdf">https://www.mhlw.go.jp/content/10800000/000911173.pdf</a></li>
+        <li>厚労省 検体検査の品質・精度管理（医政発0810第1号） <a href="https://www.ajhc.or.jp/siryo/20180810-2.pdf">https://www.ajhc.or.jp/siryo/20180810-2.pdf</a></li>
+        <li>感染症法（e-Gov） <a href="https://laws.e-gov.go.jp/law/410AC0000000114">https://laws.e-gov.go.jp/law/410AC0000000114</a> ／ 届出ハンドブック（厚労省）</li>
+        <li>臨床検査技師等に関する法律（e-Gov） <a href="https://laws.e-gov.go.jp/law/333AC1000000076">https://laws.e-gov.go.jp/law/333AC1000000076</a></li>
+        <li>PMDA プログラムの医療機器該当性ガイドライン（薬生機審発0331第1号） <a href="https://www.pmda.go.jp/files/000240233.pdf">https://www.pmda.go.jp/files/000240233.pdf</a></li>
+      </ul>
+      <h3>クラウド・認証制度・技術</h3>
+      <ul>
+        <li>ISMAP ポータル <a href="https://www.ismap.go.jp/csm">https://www.ismap.go.jp/csm</a> ／ ISMAP-LIU（デジタル庁） <a href="https://www.digital.go.jp/en/policies/security/ismap-liu">https://www.digital.go.jp/en/policies/security/ismap-liu</a></li>
+        <li>AWS HealthLake 提供リージョン（FAQ） <a href="https://aws.amazon.com/healthlake/faqs/">https://aws.amazon.com/healthlake/faqs/</a></li>
+        <li>S3 Object Lock（モード） <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html">https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html</a></li>
+        <li>Amazon Macie マネージド識別子（日本語制約） <a href="https://docs.aws.amazon.com/ja_jp/macie/latest/user/mdis-reference-pii.html">https://docs.aws.amazon.com/ja_jp/macie/latest/user/mdis-reference-pii.html</a></li>
+        <li>AWS Backup Vault Lock <a href="https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html">https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html</a></li>
+      </ul>
+      <p class="disclaimer">本資料は 2026 年 5 月時点で公開されている公的情報に基づく一般整理であり、特定の組織・案件における適合性や十分性を保証するものではない。法規制・ガイドラインは改定される（条項番号は改正で変動しうる）。実際の対応にあたっては、必ず最新の原典、所管官庁の通知、および法務・薬事・セキュリティの専門家の確認を経ること。技術スタックの記載は実現手段の一例であり、AWS 以外のクラウドでも同等の原則を満たせば差し支えない。一部の条項番号・各号の細目は公的解説に基づく確認であり、引用時は原典での最終確認を推奨する。</p>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var target = tab.getAttribute('data-panel');
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      var tabsEl = document.querySelector('.tabs');
+      var tabsTop = tabsEl.getBoundingClientRect().top + window.scrollY - 12;
+      if (window.scrollY > tabsTop) window.scrollTo({ top: tabsTop, behavior: 'smooth' });
+    });
+  });
+
+  // 条項クリックで吹き出し（条文の趣旨）
+  var clauseDesc = {
+    "法17条（利用目的の特定）":"個人情報を取り扱う際、利用目的をできる限り特定する義務。",
+    "法21条（取得時の通知公表）":"取得時に利用目的を本人へ通知または公表する義務。",
+    "法2条3項（要配慮の定義）":"病歴・心身の状態など差別・偏見が生じうる情報を要配慮個人情報と定義。検査結果・病理診断・感染症情報が該当する。",
+    "法20条2項（要配慮は原則本人同意）":"要配慮個人情報の取得には原則として本人の事前同意が必要。",
+    "法23条（安全管理措置）":"漏えい・滅失等を防ぐ組織的・人的・物理的・技術的措置を講じる義務。海外委託先等の「外的環境の把握」を含む。",
+    "法25条（委託先監督）":"個人データの取扱いを委託する場合、委託先への必要かつ適切な監督を行う義務。",
+    "法26条（漏えい等報告・本人通知）":"一定の漏えい等が生じた場合、個人情報保護委員会への報告と本人への通知が義務。",
+    "規則7条（報告対象4類型）":"報告対象＝要配慮個人情報／財産的被害のおそれ／不正の目的／1000人超、のいずれか。",
+    "規則8条（速報・確報の期限）":"速報は速やかに（概ね3〜5日）、確報は30日以内。不正アクセス等 故意による場合は60日以内。",
+    "法27条（第三者提供）":"個人データの第三者提供は原則本人同意。要配慮個人情報はオプトアウト不可。",
+    "法28条（越境移転）":"外国にある第三者への提供には本人同意や所定の対応、外的環境の把握が必要。",
+    "法33〜35条（開示等請求）":"本人による保有個人データの開示・訂正・利用停止等の請求への対応義務。",
+    "個情委 FAQ（クラウド例外）":"クラウド事業者が契約上データを取り扱わず適切なアクセス制御をすれば、第三者提供にも委託にも該当しないとする個人情報保護委員会の整理。",
+    "法27条（第三者提供）":"個人データの第三者提供は原則本人同意。要配慮個人情報はオプトアウト不可。",
+    "医療法施行規則14条2項（産情発0310第2号）":"病院等の管理者にサイバーセキュリティ確保の措置を義務化（2023年4月施行）。立入検査の確認対象。",
+    "二要素認証＝システム運用編14章 遵守事項⑤":"パスワード利用時、令和9年度（2027年4月）以降稼働の新規導入・更新システムは原則二要素認証を採用。",
+    "真正性＝企画管理編1.1.2":"電磁的記録の三原則（真正性・見読性・保存性）。改ざん防止と作成責任者の明確化を求める。",
+    "保守＝システム運用編10章":"事業者保守時のアクセスログ記録・医療機関立会い・テストデータ消去等の義務。",
+    "事業者向けGL 第2.0版（令和7年3月）":"経産省・総務省による事業者向けガイドライン。令和7年（2025年）3月28日に第2.0版へ改定。",
+    "医療法施行規則14条2項（運用）":"サイバーセキュリティ確保義務の運用。被害時は厚労省 医政局参事官室への連絡等が求められる。",
+    "個情法26条（要配慮は1件でも報告）":"要配慮個人情報の漏えい等は1件でも個人情報保護委員会への報告対象。",
+    "医療法15条の2（根拠法）":"病院等の管理者が検体検査の精度確保を省令基準に適合させる義務の根拠法。",
+    "施行規則9条の7の2（自院検査：内部精度管理/外部精度管理調査/研修）":"自院検査での内部精度管理・外部精度管理調査の受検・研修（いずれも努力義務）。",
+    "施行規則9条の8（衛生検査所・受託）":"衛生検査所・受託検査の精度確保。専ら精度管理を職務とする者の配置等。",
+    "平成30年厚労省令第93号":"検体検査の精度確保を定めた改正省令。2018年12月1日施行。",
+    "感染症法 12条（医師の届出義務）":"医師は届出対象の感染症を診断した場合、保健所長を経て知事へ届け出る義務。1〜4類は直ちに、5類は原則7日以内。",
+    "e-文書法 平成16年法律149号（通則法）/150号（整備法）":"民間事業者等の書面保存等を電磁的記録で行うことを認める法律。2005年4月施行。",
+    "医政発0329003号（平成14年）":"診療録等を外部保存する場合の基準を示した通知（電子保存可・責任の所在明確化・個人情報保護措置）。",
+    "医師法24条（診療録5年）":"医師は診療録を5年間保存する義務。",
+    "臨床検査技師等に関する法律 20条の3":"衛生検査所の開設には都道府県知事の登録が必要。精度確保の方法等が登録基準。",
+    "プログラムの医療機器該当性ガイドライン 令和3年薬生機審発0331第1号":"ソフトウェアが医療機器（SaMD）に該当するかの判断基準を示す厚労省ガイドライン（令和5年一部改正）。",
+    "病理診断＝医行為（責任主体は病理医）":"病理診断は医師（病理専門医）が行う医行為。テレパソロジーでも確定診断の責任主体は病理医。",
+    "JIS Q 27001:2023（ISO/IEC 27001:2022 対応）":"情報セキュリティマネジメントシステム（ISMS）の要求事項。ISO/IEC 27001:2022 に対応する日本産業規格。",
+    "JIS Q 15001":"個人情報保護マネジメントシステム（プライバシーマーク）の要求事項を定めた日本産業規格。",
+    "ISMAP（2020年6月〜）":"政府情報システムのためのセキュリティ評価制度。2020年6月運用開始。政府は原則 ISMAP リストから調達。",
+    "ISMAP-LIU（2022年11月〜、低リスクSaaS向け）":"低リスク業務向けの簡易版 ISMAP。2022年11月運用開始、所管はデジタル庁ほか。",
+    "次世代医療基盤法 33条（作成事業者認定）":"仮名加工・匿名加工医療情報を作成する事業者の国による認定制度。",
+    "57条（仮名加工提供）":"認定作成事業者が認定利活用者に仮名加工医療情報を提供できる規定。",
+    "HL7 FHIR JP Core":"日本の医療情報交換のための FHIR 標準プロファイル。電子カルテ情報共有サービス接続の前提。",
+    "JLAC11（検査値標準コード）":"臨床検査項目の標準コード体系。検査値の相互運用性を担保する。"
+  };
+  var tip = document.createElement('div'); tip.id = 'tip'; document.body.appendChild(tip);
+  function hideTip(){ tip.classList.remove('show'); tip.dataset.k=''; }
+  function showTip(el, title, body){
+    tip.innerHTML = '';
+    var t = document.createElement('span'); t.className='tip-title'; t.textContent = title; tip.appendChild(t);
+    var b = document.createElement('span'); b.textContent = body; tip.appendChild(b);
+    tip.classList.remove('below'); tip.classList.add('show');
+    var r = el.getBoundingClientRect();
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var top = r.bottom + window.scrollY + 9;
+    var left = r.left + window.scrollX;
+    if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+    if (left < 12) left = 12;
+    if (r.bottom + th + 18 > window.innerHeight) { top = r.top + window.scrollY - th - 9; tip.classList.add('below'); }
+    tip.style.top = top + 'px'; tip.style.left = left + 'px';
+  }
+  document.querySelectorAll('.clause code').forEach(function(code){
+    var key = code.textContent.trim();
+    if (clauseDesc[key]) {
+      code.classList.add('has-tip');
+      code.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (tip.classList.contains('show') && tip.dataset.k === key) { hideTip(); return; }
+        tip.dataset.k = key; showTip(code, key, clauseDesc[key]);
+      });
+    }
+  });
+  document.addEventListener('click', hideTip);
+  window.addEventListener('resize', hideTip);
+  window.addEventListener('scroll', hideTip);
+</script>
+
+</body>
+</html>
